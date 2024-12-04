@@ -1,4 +1,7 @@
+"use client";
+
 import Link from 'next/link';
+import { GoogleSignInButton } from './buttons/google-signin';
 
 export default function Page() {
   return (
@@ -9,6 +12,7 @@ export default function Page() {
             Welcome Banatao scholar!
           </h1>
         </div>
+        <GoogleSignInButton />
         <div className="flex space-x-3">
           <Link
             href="/protected"
