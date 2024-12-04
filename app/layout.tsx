@@ -1,4 +1,4 @@
-import './globals.css';
+import './styles/globals.css';
 
 import { GeistSans } from 'geist/font/sans';
 
@@ -25,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <script src="https://accounts.google.com/gsi/client" async></script>
-
+      <head>
+      <link href="./output.css" rel="stylesheet" />
+      </head>
       <body className={GeistSans.variable}>{children}</body>
     </html>
   );
