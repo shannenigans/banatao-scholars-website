@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Form } from 'app/form';
 import { signIn } from 'app/auth';
 import { SubmitButton } from 'app/submit-button';
+import { SocialSigninOptions } from './social-signin-options';
+import { Separator } from '@/components/ui/separator';
 
 export default function Login() {
   return (
@@ -32,6 +34,14 @@ export default function Login() {
             {' for free.'}
           </p>
         </Form>
+        <div className="flex items-center gap-4 px-16">
+          <Separator className="flex-1" />
+          <span className="text-muted-foreground text-sm font-medium">or sign in with</span>
+          <Separator className="flex-1" />
+        </div>
+        <div className='p-6'>
+          <SocialSigninOptions />
+        </div>
       </div>
     </div>
   );

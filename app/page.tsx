@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { GoogleSignInButton } from './buttons/google-signin';
+import { LinkedInSigninButton } from './buttons/linkedin-signin';
+import './globals.css';
 
 export default function Page() {
   return (
@@ -12,7 +14,6 @@ export default function Page() {
             Welcome Banatao scholar!
           </h1>
         </div>
-        <GoogleSignInButton />
         <div className="flex space-x-3">
           <Link
             href="/protected"

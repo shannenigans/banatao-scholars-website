@@ -1,13 +1,13 @@
 import { createBrowserClient } from "@/client";
 import { Button } from "@/components/ui/button"
 
-export const GoogleSignInButton = () => {
+export const LinkedInSigninButton = () => {
     const supabase = createBrowserClient();
 
-    async function signInWithGoogle() {
+    async function signInWithLinkedIn() {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
+          provider: "linkedin",
           options: {
             redirectTo: `/signedIn`,
           },
@@ -22,8 +22,8 @@ export const GoogleSignInButton = () => {
     }
     
     return (
-        <Button id='google-sign-in' size="lg" variant="outline" onClick={signInWithGoogle}>
-            <img src="/google_icon.svg" height={30} width={30}/>
+        <Button id='linkedin-sign-in' size="lg" variant="outline" onClick={signInWithLinkedIn}>
+            <img src="/linkedin_icon.svg" height={30} width={30}/>
         </Button>
     )
 }
