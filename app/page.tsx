@@ -1,9 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { GoogleSignInButton } from './buttons/google-signin';
-import { LinkedInSigninButton } from './buttons/linkedin-signin';
-import './globals.css';
+import './styles/globals.css';
 
 export default function Page() {
   return (

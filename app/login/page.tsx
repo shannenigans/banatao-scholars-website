@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Form } from 'app/form';
 import { signIn } from 'app/auth';
 import { SubmitButton } from 'app/submit-button';
-import { SocialSigninOptions } from './social-signin-options';
+import { SocialSigninOptions } from '@/components/social-signin-options';
 import { Separator } from '@/components/ui/separator';
 
 export default function Login() {
