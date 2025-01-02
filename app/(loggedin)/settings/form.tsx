@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -97,7 +96,7 @@ export function ProfileForm() {
                         />
                         <FormField
                             control={form.control}
-                            name="university"
+                            name="graduationYear"
                             render={({ field }) => (
                                 <FormItem className="my-2">
                                     <FormLabel>Graduation</FormLabel>

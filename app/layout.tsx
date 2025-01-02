@@ -1,6 +1,5 @@
+'use client';
 import './styles/globals.css';
-
-import { GeistSans } from 'geist/font/sans';
 
 let title = 'Next.js + Postgres Auth Starter';
 let description =
@@ -26,9 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <script src="https://accounts.google.com/gsi/client" async></script>
       <head>
-      <link href="./output.css" rel="stylesheet" />
+      {/* <link href="./output.css" rel="stylesheet" /> */}
       </head>
-      <body className={GeistSans.variable}>{children}</body>
+      <body>{children}</body> 
     </html>
   );
 }

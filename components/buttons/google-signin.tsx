@@ -6,16 +6,18 @@ export const GoogleSignInButton = () => {
 
     async function signInWithGoogle() {
       try {
-        const { error } = await supabase.auth.signInWithOAuth({
+        const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
-            redirectTo: `/signedIn`,
+            redirectTo: `http://localhost:3000/settings`,
           },
         })
     
         if (error) {
           throw error
         }
+        
+        console.log(data)
       } catch (error) {
         console.log('ERROR' + error)
       }
