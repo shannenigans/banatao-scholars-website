@@ -1,15 +1,7 @@
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuPortal,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
 import {
@@ -24,7 +16,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ChevronUp, Home, Settings, User2 } from "lucide-react"
+import { ChevronUp, Home, Settings, User2, School } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
 
 const tabs = [
