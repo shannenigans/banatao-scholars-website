@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ProfileForm } from "./form"
+import { Footer } from "@/components/ui/footer"
 
 export default function SettingsPage() {
     return (
@@ -21,6 +22,7 @@ export default function SettingsPage() {
                 <ProfileForm />
             </CardContent>
         </Card>
+        <Footer />
         </div>
     )
 }

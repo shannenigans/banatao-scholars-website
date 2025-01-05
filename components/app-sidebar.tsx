@@ -16,15 +16,20 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ChevronUp, Home, Settings, User2, School } from "lucide-react"
+import { ChevronUp, Home, Settings, User2, BookOpenText } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
 
 const tabs = [
     {
         title: "Home",
-        url: "#",
+        url: "/",
         icon: Home,
     },
+    {
+      title: "Scholars",
+      url: "/scholars",
+      icon: BookOpenText,
+  },
     {
         title: "Settings",
         url: "/settings",
