@@ -16,8 +16,6 @@ export const GoogleSignInButton = () => {
         if (error) {
           throw error
         }
-        
-        console.log(data)
       } catch (error) {
         console.log('ERROR' + error)
       }

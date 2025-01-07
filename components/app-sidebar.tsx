@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,15 +17,22 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ChevronUp, Home, Settings, User2, School } from "lucide-react"
+import { ChevronUp, Home, Settings, User2, BookOpenText } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
+import { createBrowserClient } from "@/client";
+import { User } from '@supabase/supabase-js';
 
 const tabs = [
     {
         title: "Home",
-        url: "#",
+        url: "/",
         icon: Home,
     },
+    {
+      title: "Scholars",
+      url: "/scholars",
+      icon: BookOpenText,
+  },
     {
         title: "Settings",
         url: "/settings",
@@ -33,6 +41,18 @@ const tabs = [
 ];
 
 export function AppSidebar() {
+    const supabase = createBrowserClient();
+    const [user, setUser] = React.useState<User | undefined>(undefined);
+    
+    React.useEffect(() => {
+      const checkUser = async () => {
+        const { data } = await supabase.auth.getSession();
+        setUser(data.session?.user);
+      }
+
+      checkUser();
+    }, [])
+
     return (
         <Sidebar>
             <SidebarHeader />
@@ -60,7 +80,7 @@ export function AppSidebar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton>
-                    <User2 /> Username
+                    <User2 /> {user?.email ? user?.email : ''}
                     <ChevronUp className="ml-auto" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>

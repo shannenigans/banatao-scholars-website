@@ -7,7 +7,7 @@ export const LinkedInSigninButton = () => {
     async function signInWithLinkedIn() {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: "linkedin",
+          provider: "linkedin_oidc",
           options: {
             redirectTo: `/signedIn`,
           },

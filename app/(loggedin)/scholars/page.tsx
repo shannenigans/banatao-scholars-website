@@ -1,3 +1,6 @@
+'use client';
+
+import React from 'react';
 import { Scholar } from "@/types/scholar";
 import {
   Card,
@@ -8,9 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
-
+import { Input } from "@/components/ui/input";
+import { useDebounce } from '@/hooks/use-debounce';
 // Mock data for scholars
 const scholars: Scholar[] = [
   {
@@ -26,14 +29,38 @@ const scholars: Scholar[] = [
   },
 ];
 
+const DELAY = 1000;
 export default function ScholarsPage() {
+  const [filteredScholars, setFilteredScholars] = React.useState<Scholar[]>(scholars);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const debouncedValue = useDebounce(searchQuery, DELAY);
+
+  React.useEffect(() => {
+    if (debouncedValue !== '') {
+      setFilteredScholars(scholars.filter((scholar: Scholar) => {
+        return Object.values(scholar).some((value) => String(value).toLowerCase().includes(debouncedValue))
+      }));
+    } else {
+      setFilteredScholars(scholars);
+    }
+  }, [debouncedValue, scholars])
+
+  const handleOnChange = (ev: any) => {
+    const searchValue = (ev.target.value).toLowerCase();
+    setSearchQuery(searchValue);
+  }
+
+  const resultString = filteredScholars.length === 1 ? ' result' : ' results';
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="container mx-auto py-8">
+      <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-8 text-center">Scholars</h1>
+        <div className="my-4 justify-center flex">
+          <Input className="w-96" placeholder="Find a scholar..." onChange={handleOnChange} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {scholars.map((scholar) => (
+          {filteredScholars.map((scholar) => (
             <Card key={scholar.id} className="flex flex-col">
               <CardHeader className="flex-row gap-4 items-center">
                 <Image
@@ -61,7 +88,8 @@ export default function ScholarsPage() {
             </Card>
           ))}
         </div>
-      </main>
+        <div className='flex my-4 justify-center "'><p>{filteredScholars.length} {resultString}</p></div>
+      </div>
       <Footer />
     </div>
   );

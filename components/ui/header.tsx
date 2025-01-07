@@ -1,6 +1,28 @@
+import React from "react";
 import Link from "next/link";
 
+import { createBrowserClient } from "@/client";
+import { TABS } from "@/constants/tabs";
+import { Tab } from "@/types/tab";
+
 export function Header() {
+  const supabase = createBrowserClient();
+  const [linkTabs, setLinkTabs] = React.useState<Tab[]>([]);
+
+  React.useEffect(() => {
+    async function checkUser() {
+      const { data, error } =  await supabase.auth.getUser();
+
+      if (data && data.user) {
+        setLinkTabs([TABS.Home, TABS.Scholars, TABS.Settings]);
+      } else {
+        setLinkTabs([TABS.Home, TABS.SignIn]);
+      }
+    }
+
+    checkUser();
+  }, [])
+
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,30 +34,18 @@ export function Header() {
           </div>
           <nav>
             <ul className="flex space-x-4">
-              <li>
-                <Link
-                  href="/"
-                  className="text-sm font-medium hover:text-primary"
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/scholars"
-                  className="text-sm font-medium hover:text-primary"
-                >
-                  Scholars
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/protected"
-                  className="text-sm font-medium hover:text-primary"
-                >
-                  Sign in
-                </Link>
-              </li>
+              {linkTabs.map((tab) => {
+                return (
+                  <li>
+                  <Link
+                    href={tab.url}
+                    className="text-sm font-medium hover:text-primary"
+                  >
+                    {tab.title}
+                  </Link>
+                </li>
+                )
+              })}
             </ul>
           </nav>
         </div>
