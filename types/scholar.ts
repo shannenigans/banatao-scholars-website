@@ -1,12 +1,16 @@
 export interface Scholar {
-  id: string;
+  id: number;
+  email: string;
   firstName: string;
   lastName: string;
-  location: string;
+  location?: string;
   description: string;
-  school: string;
-  graduationYear: number;
-  company: string;
-  imageUrl: string;
-  major: string;
+  gradGraduationYear?: number;
+  undergradGraduationYear?: number
+  company?: string;
+  imageUrl?: string;
+  undergrad?: string;
+  bio?: string;
+  grad?: string;
+  major?: string;
 }
