@@ -4,10 +4,10 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+} from "@/app/components/ui/card"
+import { Separator } from "@/app/components/ui/separator"
 import { ProfileForm } from "./form"
-import { Footer } from "@/components/ui/footer"
+import { Footer } from "@/app/components/ui/footer"
 
 export default function SettingsPage() {
     return (

@@ -4,7 +4,7 @@ import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/app/components/ui/button"
 import {
     Form,
     FormControl,
@@ -12,15 +12,15 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Label } from '@/components/ui/label';
+} from "@/app/components/ui/form"
+import { Input } from "@/app/components/ui/input"
+import { Textarea } from "@/app/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
+import { Label } from '@/app/components/ui/label';
 import { PlusCircle } from 'lucide-react';
-import { addProfile, updateProfile } from '@/utils/server';
+import { addProfile, updateProfile } from '@/app/lib/server';
 import { createBrowserClient } from '@/client';
-import { Scholar } from '@/types/scholar';
+import { Scholar } from '@/app/types/scholar';
 
 const MAX_FILE_SIZE = 20000000
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];

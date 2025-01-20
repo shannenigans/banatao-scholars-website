@@ -1,6 +1,6 @@
 'use client';
-import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/app/components/app-sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/app/components/ui/sidebar';
 
 export default function RootLayout({
   children,

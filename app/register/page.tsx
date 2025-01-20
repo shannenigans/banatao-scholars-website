@@ -1,23 +1,26 @@
+'use client'
 import Link from 'next/link';
 import { Form } from 'app/form';
-import { redirect } from 'next/navigation';
-import { createUser, getUser } from 'app/db';
-import { SubmitButton } from 'app/submit-button';
+
+import { SubmitButton } from '@/components/buttons/submit-button';
+import { registerUser } from '@/app/lib/server';
+import { useFormState } from 'react-dom';
+import { useToast } from '@/app/hooks/use-toast';
+import React from 'react';
 
 export default function Login() {
-  async function register(formData: FormData) {
-    'use server';
-    let email = formData.get('email') as string;
-    let password = formData.get('password') as string;
-    let user = await getUser(email);
+  const [actionResult, formAction] = useFormState(registerUser, { errors: { formErrors: ''}});
+  const { toast: errorToast } = useToast();
 
-    if (user.length > 0) {
-      return 'User already exists'; // TODO: Handle errors with useFormStatus
-    } else {
-      await createUser(email, password);
-      redirect('/login');
+  React.useEffect(() => {
+    if (actionResult.errors.formErrors !== '') {
+      errorToast({
+        title: 'Error',
+        variant: 'destructive',
+        description: actionResult.errors.formErrors
+      });
     }
-  }
+  }, [actionResult])
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
@@ -28,7 +31,7 @@ export default function Login() {
             Create an account with your email and password
           </p>
         </div>
-        <Form action={register}>
+        <Form action={formAction}>
           <SubmitButton>Sign Up</SubmitButton>
           <p className="text-center text-sm text-gray-600">
             {'Already have an account? '}

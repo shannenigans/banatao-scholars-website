@@ -1,21 +1,21 @@
 'use client';
 
 import React from 'react';
-import { Scholar } from "@/types/scholar";
+import { Scholar } from "@/app/types/scholar";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge";
+} from "@/app/components/ui/card";
+import { Skeleton } from "@/app/components/ui/skeleton"
+import { Badge } from "@/app/components/ui/badge";
 import Image from "next/image";
-import { Footer } from "@/components/ui/footer";
-import { Input } from "@/components/ui/input";
-import { useDebounce } from '@/hooks/use-debounce';
-import { fetchScholars } from '@/utils/server';
+import { Footer } from "@/app/components/ui/footer";
+import { Input } from "@/app/components/ui/input";
+import { useDebounce } from '@/app/hooks/use-debounce';
+import { fetchScholars } from '@/app/lib/server';
 import { Briefcase, MapPin } from 'lucide-react';
 
 const DELAY = 1000;

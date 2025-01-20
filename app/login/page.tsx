@@ -1,11 +1,15 @@
+'use client'
 import Link from 'next/link';
 import { Form } from 'app/form';
-import { signIn } from 'app/auth';
-import { SubmitButton } from 'app/submit-button';
-import { SocialSigninOptions } from '@/components/social-signin-options';
-import { Separator } from '@/components/ui/separator';
+
+import { SubmitButton } from '@/components/buttons/submit-button';
+import { SocialSigninOptions } from '@/app/components/social-signin-options';
+import { Separator } from '@/app/components/ui/separator';
+import { useFormState } from 'react-dom';
+import { signInAsUser } from '@/app/lib/server';
 
 export default function Login() {
+  const [actionResult, formAction] = useFormState(signInAsUser, { errors: { formErrors: ''}});
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
       <div className="z-10 w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
@@ -16,14 +20,7 @@ export default function Login() {
           </p>
         </div>
         <Form
-          action={async (formData: FormData) => {
-            'use server';
-            await signIn('credentials', {
-              redirectTo: '/protected',
-              email: formData.get('email') as string,
-              password: formData.get('password') as string,
-            });
-          }}
+          action={formAction}
         >
           <SubmitButton>Sign in</SubmitButton>
           <p className="text-center text-sm text-gray-600">
@@ -31,7 +28,6 @@ export default function Login() {
             <Link href="/register" className="font-semibold text-gray-800">
               Sign up
             </Link>
-            {' for free.'}
           </p>
         </Form>
         <div className="flex items-center gap-4 px-16">
