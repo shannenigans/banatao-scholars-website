@@ -48,7 +48,6 @@ export async function signInAsUser(prevState: any, formData: FormData){
   if (error) {
     return { errors: { formErrors: error.message }}
   } else {
-    console.log('signInAsUserData', signInAsUserData)
     revalidatePath('/');
     redirect('/scholars');
   }
@@ -56,7 +55,16 @@ export async function signInAsUser(prevState: any, formData: FormData){
 
 export async function signup(prevState: any, formData: FormData) {
   const supabase = await createClient();
-  const data = { email: formData.get('email') as string, password: formData.get('password') as string, phone: '' }
+  const email = formData.get('email') as string;
+  
+  const emailIsWhiteListed = await isEmailWhitelisted(email);
+  
+  if (!emailIsWhiteListed) {
+    revalidatePath('/');
+    redirect('/loginError');
+  }
+
+  const data = { email, password: formData.get('password') as string, phone: '' }
 
   const { error } = await supabase.auth.signUp(data);
 
@@ -67,6 +75,13 @@ export async function signup(prevState: any, formData: FormData) {
     redirect('/settings');
     return { errors: { formErrors: ''}}
   }
+}
+
+export async function isEmailWhitelisted(email: string) {
+  const supabase = await createClient();
+  const { data: matching_rows } = await supabase.from('email_whitelist').select('email').eq('email', email);
+
+  return matching_rows?.length === 1;
 }
 
 export async function signOut() {

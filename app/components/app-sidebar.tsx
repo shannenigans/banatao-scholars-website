@@ -21,7 +21,6 @@ import { ChevronUp, Home, Settings, User2, BookOpenText } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
 import { User } from '@supabase/supabase-js';
 import { getUser } from '../lib/actions';
-import { createBrowserClient } from '../utils/supabase/client';
 
 const tabs = [
     {
