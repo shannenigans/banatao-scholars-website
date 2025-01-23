@@ -12,7 +12,6 @@ import {
 import { Skeleton } from "@/app/components/ui/skeleton"
 import { Badge } from "@/app/components/ui/badge";
 import Image from "next/image";
-import { Footer } from "@/app/components/ui/footer";
 import { Input } from "@/app/components/ui/input";
 import { useDebounce } from '@/app/hooks/use-debounce';
 import { fetchScholars } from '@/app/lib/actions';
@@ -54,18 +53,17 @@ export default function ScholarsPage() {
   const resultString = filteredScholars?.length === 1 ? ' result' : ' results';
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col">
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-8 text-center">Scholars</h1>
         <div className="my-4 justify-center flex">
           <Input className="w-96" placeholder="Find a scholar..." onChange={handleOnChange} />
+          <span className='self-center text-gray-600 text-sm pl-2'>{isLoading ? '' : filteredScholars?.length + ' ' + resultString}</span>
         </div>
         <div>
           {isLoading ? renderSkeleton() : renderCards()}
         </div>
-        <div className='flex my-4 justify-center "'><p>{isLoading ? '' : filteredScholars?.length + ' ' + resultString}</p></div>
       </div>
-      <Footer />
     </div>
   );
 

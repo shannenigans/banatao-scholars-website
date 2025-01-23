@@ -18,10 +18,9 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
 import { Label } from '@/app/components/ui/label';
 import { PlusCircle } from 'lucide-react';
-import { addProfile, updateProfile } from '@/app/lib/actions';
+import { addProfile, getUser, updateProfile } from '@/app/lib/actions';
 import { createBrowserClient } from '@/app/utils/supabase/client';
 import { Scholar } from '@/app/types/scholar';
-import { NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = 20000000
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -43,11 +42,11 @@ const formSchema = z.object({
     company: z.string().max(50).optional(),
     description: z.string().max(50).optional(),
     // TODO: Fix photo upload
-    // profilePic: z.any().refine((file) => {
-    //     if (file && file.length > 0)
-    //     return file[0].size <= MAX_FILE_SIZE}, 'Max image size is 2MB').refine((file) => {
-    // if (file.length > 0) 
-    // return ACCEPTED_IMAGE_TYPES.includes(file[0].type)}, "Please upload .jpg, .jpeg, and .png formats only.")
+    profilePic: z.any().refine((file) => {
+        if (file && file.length > 0)
+        return file[0].size <= MAX_FILE_SIZE}, 'Max image size is 2MB').refine((file) => {
+    if (file.length > 0) 
+    return ACCEPTED_IMAGE_TYPES.includes(file[0].type)}, "Please upload .jpg, .jpeg, and .png formats only.")
 });
 
 const enum SECTION {
@@ -74,14 +73,8 @@ export function ProfileForm() {
     React.useEffect(() => {
         const checkUser = async () => {
             const supabase = createBrowserClient();
-            const { data, error } = await supabase.auth.getSession();
-            if (!data.session || error) {
-                
-            }
-            console.log('checkUser', data)
-            const user = data.session?.user;
-
-            const { data: scholarProfile } = await supabase.from('profile').select().eq('email', user?.email);
+            const data = await getUser();
+            const { data: scholarProfile } = await supabase.from('profile').select().eq('email', data?.user?.email);
             if (scholarProfile) {
                 setUserInfo(scholarProfile[0] as Scholar);
             }
@@ -107,7 +100,7 @@ export function ProfileForm() {
             gradGraduationYear: userInfo ? userInfo.gradGraduationYear : undefined,
             undergradGraduationYear: userInfo ? userInfo.undergradGraduationYear : undefined,
             company: userInfo ? userInfo.company : undefined,
-            // profilePic: userInfo.imageUrl || undefined,
+            profilePic: userInfo.imageUrl || undefined,
             undergrad: userInfo ? userInfo.undergrad : undefined,
             bio: userInfo ? userInfo.bio : undefined,
             grad: userInfo ? userInfo.grad : undefined,
@@ -148,7 +141,7 @@ export function ProfileForm() {
                             <AvatarImage src={preview} />
                             <AvatarFallback>?</AvatarFallback>
                         </Avatar>
-                        {/* <FormField
+                        <FormField
                             control={form.control}
                             name="profilePic"
                             render={({ field: { onChange, value, ...rest } }) => (
@@ -164,8 +157,8 @@ export function ProfileForm() {
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
-                            )} */}
-                        {/* /> */}
+                            )}
+                        />
                     </div>
                     <div className="flex flex-col w-full basis-3/4">
                         <FormField

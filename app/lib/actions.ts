@@ -79,8 +79,7 @@ export async function signup(prevState: any, formData: FormData) {
 
 export async function isEmailWhitelisted(email: string) {
   const supabase = await createClient();
-  const { data: matching_rows } = await supabase.from('email_whitelist').select('email').eq('email', email);
-
+  const { data: matching_rows } = await supabase.from('email_whitelist').select('email').eq('email', email)
   return matching_rows?.length === 1;
 }
 
