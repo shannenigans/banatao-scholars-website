@@ -1,5 +1,7 @@
+import { isEmailWhitelisted } from '@/app/lib/actions';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+import { redirect } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
@@ -34,20 +36,36 @@ export async function updateSession(request: NextRequest) {
   // For PKCE flow in OAuth, get code from url and validate user is authenticated
   const searchParams = new URLSearchParams(request.nextUrl.search);
   const code = searchParams.get('code');
+  let emailIsWhiteListed = true;
   if (code) {
-    await supabase.auth.exchangeCodeForSession(code)
+    const { data: session} = await supabase.auth.exchangeCodeForSession(code);
+
+    if (session.user?.email) {
+      emailIsWhiteListed = await isEmailWhitelisted(session.user?.email);
+      if (!emailIsWhiteListed) {
+        return NextResponse.rewrite('http://localhost:3000/loginError')
+      }
+    }
   }
 
   const {
     data: { user },
     error
   } = await supabase.auth.getUser()
+
+  if (user && user.email) {
+    emailIsWhiteListed = await isEmailWhitelisted(user.email);
+    if (!emailIsWhiteListed) {
+      return NextResponse.rewrite('http://localhost:3000/loginError')
+    }
+  }
   
   const bypassPaths = [
     '/auth/v1/callback',
     '/login',
     '/auth',
     '/register',
+    '/error'
   ];
   
   if (
@@ -57,9 +75,7 @@ export async function updateSession(request: NextRequest) {
     !code
   ) {
     // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return redirectToLogin(request);
   }
 
   const newResponse = NextResponse.next({request, headers})
@@ -84,4 +100,10 @@ export async function updateSession(request: NextRequest) {
   // of sync and terminate the user's session prematurely!
 
   return newResponse
+}
+
+function redirectToLogin(request: NextRequest) {
+  const url = request.nextUrl.clone()
+  url.pathname = '/login'
+  return NextResponse.redirect(url)
 }
