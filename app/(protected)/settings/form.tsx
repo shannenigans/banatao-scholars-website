@@ -18,9 +18,10 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
 import { Label } from '@/app/components/ui/label';
 import { PlusCircle } from 'lucide-react';
-import { addProfile, updateProfile } from '@/app/lib/server';
-import { createBrowserClient } from '@/client';
+import { addProfile, updateProfile } from '@/app/lib/actions';
+import { createBrowserClient } from '@/app/utils/supabase/client';
 import { Scholar } from '@/app/types/scholar';
+import { NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = 20000000
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -73,11 +74,15 @@ export function ProfileForm() {
     React.useEffect(() => {
         const checkUser = async () => {
             const supabase = createBrowserClient();
-            const { data } = await supabase.auth.getSession();
+            const { data, error } = await supabase.auth.getSession();
+            if (!data.session || error) {
+                
+            }
+            console.log('checkUser', data)
             const user = data.session?.user;
 
-            const { data: scholarProfile, error } = await supabase.from('profile').select().eq('email', user?.email);
-            if (!error && scholarProfile) {
+            const { data: scholarProfile } = await supabase.from('profile').select().eq('email', user?.email);
+            if (scholarProfile) {
                 setUserInfo(scholarProfile[0] as Scholar);
             }
         }
@@ -95,18 +100,18 @@ export function ProfileForm() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         values: {
-            firstName: userInfo.firstName,
-            lastName: userInfo.lastName,
-            location: userInfo.location || undefined,
-            description: userInfo.description,
-            gradGraduationYear: userInfo.gradGraduationYear || undefined,
-            undergradGraduationYear: userInfo.undergradGraduationYear || undefined,
-            company: userInfo.company || undefined,
+            firstName: userInfo ? userInfo.firstName : '',
+            lastName: userInfo ? userInfo.lastName : '',
+            location: userInfo ? userInfo.location  : '',
+            description: userInfo ? userInfo.description : '',
+            gradGraduationYear: userInfo ? userInfo.gradGraduationYear : undefined,
+            undergradGraduationYear: userInfo ? userInfo.undergradGraduationYear : undefined,
+            company: userInfo ? userInfo.company : undefined,
             // profilePic: userInfo.imageUrl || undefined,
-            undergrad: userInfo.undergrad || undefined,
-            bio: userInfo.bio || undefined,
-            grad: userInfo.grad || undefined,
-            major: userInfo.major || undefined
+            undergrad: userInfo ? userInfo.undergrad : undefined,
+            bio: userInfo ? userInfo.bio : undefined,
+            grad: userInfo ? userInfo.grad : undefined,
+            major: userInfo ? userInfo.major : undefined
         }
     });
 

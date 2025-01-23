@@ -19,8 +19,9 @@ import {
 } from "@/app/components/ui/sidebar"
 import { ChevronUp, Home, Settings, User2, BookOpenText } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
-import { createBrowserClient } from "@/client";
 import { User } from '@supabase/supabase-js';
+import { getUser } from '../lib/actions';
+import { createBrowserClient } from '../utils/supabase/client';
 
 const tabs = [
     {
@@ -41,13 +42,12 @@ const tabs = [
 ];
 
 export function AppSidebar() {
-    const supabase = createBrowserClient();
     const [user, setUser] = React.useState<User | undefined>(undefined);
     
     React.useEffect(() => {
       const checkUser = async () => {
-        const { data } = await supabase.auth.getSession();
-        setUser(data.session?.user);
+        const data = await getUser();
+        setUser(data?.user ?? undefined);
       }
 
       checkUser();

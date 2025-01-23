@@ -1,15 +1,30 @@
 'use client'
+import React from 'react';
+import { useFormState } from 'react-dom';
+
 import Link from 'next/link';
 import { Form } from 'app/form';
 
 import { SubmitButton } from '@/components/buttons/submit-button';
 import { SocialSigninOptions } from '@/app/components/social-signin-options';
 import { Separator } from '@/app/components/ui/separator';
-import { useFormState } from 'react-dom';
-import { signInAsUser } from '@/app/lib/server';
+import { signInAsUser } from '@/app/lib/actions';
+import { useToast } from '../hooks/use-toast';
 
 export default function Login() {
   const [actionResult, formAction] = useFormState(signInAsUser, { errors: { formErrors: ''}});
+  const { toast: errorToast } = useToast();
+
+  React.useEffect(() => {
+    if (actionResult.errors.formErrors !== '') {
+      errorToast({
+        title: 'Error',
+        variant: 'destructive',
+        description: actionResult.errors.formErrors
+      });
+    }
+  }, [actionResult])
+
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
       <div className="z-10 w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 shadow-xl">

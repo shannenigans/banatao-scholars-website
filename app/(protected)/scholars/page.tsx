@@ -15,7 +15,7 @@ import Image from "next/image";
 import { Footer } from "@/app/components/ui/footer";
 import { Input } from "@/app/components/ui/input";
 import { useDebounce } from '@/app/hooks/use-debounce';
-import { fetchScholars } from '@/app/lib/server';
+import { fetchScholars } from '@/app/lib/actions';
 import { Briefcase, MapPin } from 'lucide-react';
 
 const DELAY = 1000;

@@ -8,8 +8,9 @@ import {
 import { Separator } from "@/app/components/ui/separator"
 import { ProfileForm } from "./form"
 import { Footer } from "@/app/components/ui/footer"
+import React from "react"
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
     return (
         <div className="container p-6 mx-auto">
         <Card> 

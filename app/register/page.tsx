@@ -1,15 +1,16 @@
 'use client'
+import React from 'react';
+import { useFormState } from 'react-dom';
+
 import Link from 'next/link';
 import { Form } from 'app/form';
 
 import { SubmitButton } from '@/components/buttons/submit-button';
-import { registerUser } from '@/app/lib/server';
-import { useFormState } from 'react-dom';
+import { signup } from '@/app/lib/actions';
 import { useToast } from '@/app/hooks/use-toast';
-import React from 'react';
 
 export default function Login() {
-  const [actionResult, formAction] = useFormState(registerUser, { errors: { formErrors: ''}});
+  const [actionResult, formAction] = useFormState(signup, { errors: { formErrors: ''}});
   const { toast: errorToast } = useToast();
 
   React.useEffect(() => {

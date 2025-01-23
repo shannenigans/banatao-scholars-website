@@ -1,18 +1,18 @@
 import React from "react";
 import Link from "next/link";
 
-import { createBrowserClient } from "@/client";
 import { TABS } from "@/app/constants/tabs";
 import { Tab } from "@/app/types/tab";
+import { getUser } from "@/app/lib/actions";
+import { createBrowserClient } from "@/app/utils/supabase/client";
 
 export function Header() {
-  const supabase = createBrowserClient();
   const [linkTabs, setLinkTabs] = React.useState<Tab[]>([]);
 
   React.useEffect(() => {
     async function checkUser() {
-      const { data, error } =  await supabase.auth.getUser();
-
+      const data =  await getUser();
+      
       if (data && data.user) {
         setLinkTabs([TABS.Home, TABS.Scholars, TABS.Settings]);
       } else {

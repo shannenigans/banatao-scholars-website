@@ -1,6 +1,5 @@
 "use client";
 
-import Link from 'next/link';
 import { Header } from '@/app/components/ui/header';
 import { Footer } from '@/app/components/ui/footer';
 
