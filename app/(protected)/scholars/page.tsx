@@ -5,7 +5,6 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
@@ -38,7 +37,7 @@ export default function ScholarsPage() {
   const [majorFilters, setMajorFilters] = React.useState<Set<string>>(new Set<string>());
   const [schoolFilters, setSchoolFilters] = React.useState<Set<string>>(new Set<string>());
   const [yearFilters, setYearFilters] = React.useState<Set<string>>(new Set<string>());
-
+  const [currentPage, setCurrentPage] = React.useState(1);
   const debouncedValue = useDebounce(searchQuery, DELAY);
 
   React.useEffect(() => {
@@ -53,7 +52,7 @@ export default function ScholarsPage() {
 
   React.useEffect(() => {
     if ((schoolFilters?.size === 0 && majorFilters?.size === 0 && yearFilters?.size === 0)) {
-      setFilteredScholars(fetchedScholars);
+      resetScholars();
     } else {
       const newFilteredScholars = fetchedScholars?.filter((scholar: Scholar) => {
         let hasMajorFilter = false;
@@ -68,7 +67,7 @@ export default function ScholarsPage() {
     }
   }, [schoolFilters, majorFilters, yearFilters])
 
-  const {majors, schools, years} = React.useMemo(() => {
+  const { majors, schools, years } = React.useMemo(() => {
     const majors = new Set<string>();
     const schools = new Set<string>();
     const years = new Set<string>();
@@ -82,7 +81,7 @@ export default function ScholarsPage() {
         if (scholar.school) {
           schools.add(scholar.school);
         }
-  
+
         if (scholar.major) {
           if (MAJORS_MAP.get(DEPARTMENT.COMPUTER_SCIENCE)?.some((major) => scholar.major?.includes(major))) {
             majors.add(DEPARTMENT.COMPUTER_SCIENCE);
@@ -96,7 +95,7 @@ export default function ScholarsPage() {
             majors.add(DEPARTMENT.SYSTEMS_ENGINEERING)
           } else if (MAJORS_MAP.get(DEPARTMENT.BIO_ENGINEERING)?.some((major) => scholar.major?.includes(major))) {
             majors.add(DEPARTMENT.BIO_ENGINEERING)
-          }else {
+          } else {
             majors.add(scholar.major)
           }
         }
@@ -112,23 +111,33 @@ export default function ScholarsPage() {
         return Object.values(scholar).some((value) => String(value).toLowerCase().includes(debouncedValue))
       }));
     } else {
-      setFilteredScholars(fetchedScholars);
+      resetScholars();
     }
   }, [debouncedValue, fetchedScholars])
+
+  React.useEffect(() => {
+    resetScholars();
+  }, [currentPage]);
 
   const handleOnChange = (ev: any) => {
     const searchValue = (ev.target.value).toLowerCase();
     setSearchQuery(searchValue);
   }
 
+  const resetScholars = () => {
+    const pagedScholars = fetchedScholars?.filter((scholar: Scholar) => scholar.status === SCHOLAR_STATUS.ACTIVE || scholar.status === SCHOLAR_STATUS.GRADUATED).slice((currentPage - 1) * DEFAULT_SCHOLARS_PER_PAGE, (currentPage * DEFAULT_SCHOLARS_PER_PAGE));
+    setFilteredScholars(pagedScholars)
+  }
+
   const resultString = filteredScholars?.length === 1 ? ' result' : ' results';
   return (
     <div className="flex flex-col">
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Scholars</h1>
         {renderSearchAndFilter()}
-        <div>
+        <div className='flex flex-col space-between'>
           {isLoading ? renderSkeleton() : renderCards()}
+          {renderPagination()}
         </div>
       </div>
     </div>
@@ -138,94 +147,94 @@ export default function ScholarsPage() {
     return (
       <div className="my-4 justify-between flex">
         <div className='flex gap-2'>
-        <div className='flex flex-row self-center text-sm text-muted-foreground'><Filter className='text-md pr-2' /><span className='flex self-center'>Filter by:</span> </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Year</DropdownMenuTrigger>
-          <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
-            <DropdownMenuLabel>Year</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {
-              Array.from(years).map((year) => {
-                const handleCheckedChange = (checked: boolean) => {
+          <div className='flex flex-row self-center text-sm text-muted-foreground'><Filter className='text-md pr-2' /><span className='flex self-center'>Filter by:</span> </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Year</DropdownMenuTrigger>
+            <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
+              <DropdownMenuLabel>Year</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {
+                Array.from(years).map((year) => {
+                  const handleCheckedChange = (checked: boolean) => {
 
-                  setYearFilters((prevFilters) => {
-                    const newFilterSet = new Set(prevFilters);
-                    if (checked) {
-                      newFilterSet.add(year);
-                    } else {
-                      newFilterSet.delete(year);
-                    }
-                    return newFilterSet;
-                  })
-                }
+                    setYearFilters((prevFilters) => {
+                      const newFilterSet = new Set(prevFilters);
+                      if (checked) {
+                        newFilterSet.add(year);
+                      } else {
+                        newFilterSet.delete(year);
+                      }
+                      return newFilterSet;
+                    })
+                  }
 
-                const checked = yearFilters?.has(year);
-                return (
-                  <DropdownMenuCheckboxItem checked={checked} onCheckedChange={handleCheckedChange}>{year}</DropdownMenuCheckboxItem>
-                )
-              })
-            }
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Major</DropdownMenuTrigger>
-          <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
-            <DropdownMenuLabel>Major</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {
-              Array.from(majors).map((major) => {
-                const handleCheckedChange = (checked: boolean) => {
+                  const checked = yearFilters?.has(year);
+                  return (
+                    <DropdownMenuCheckboxItem checked={checked} onCheckedChange={handleCheckedChange}>{year}</DropdownMenuCheckboxItem>
+                  )
+                })
+              }
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Major</DropdownMenuTrigger>
+            <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
+              <DropdownMenuLabel>Major</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {
+                Array.from(majors).map((major) => {
+                  const handleCheckedChange = (checked: boolean) => {
 
-                  setMajorFilters((prevFilters) => {
-                    const newFilterSet = new Set(prevFilters);
-                    if (checked) {
-                      newFilterSet.add(major);
-                    } else {
-                      newFilterSet.delete(major);
-                    }
-                    return newFilterSet;
-                  })
-                }
+                    setMajorFilters((prevFilters) => {
+                      const newFilterSet = new Set(prevFilters);
+                      if (checked) {
+                        newFilterSet.add(major);
+                      } else {
+                        newFilterSet.delete(major);
+                      }
+                      return newFilterSet;
+                    })
+                  }
 
-                const checked = majorFilters?.has(major);
-                return (
-                  <DropdownMenuCheckboxItem checked={checked} onCheckedChange={handleCheckedChange}>{major}</DropdownMenuCheckboxItem>
-                )
-              })
-            }
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Schools</DropdownMenuTrigger>
-          <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
-            <DropdownMenuLabel>Schools</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {
-              Array.from(schools).map((school: string) => {
-                const handleCheckedChange = (checked: boolean) => {
+                  const checked = majorFilters?.has(major);
+                  return (
+                    <DropdownMenuCheckboxItem checked={checked} onCheckedChange={handleCheckedChange}>{major}</DropdownMenuCheckboxItem>
+                  )
+                })
+              }
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Schools</DropdownMenuTrigger>
+            <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
+              <DropdownMenuLabel>Schools</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {
+                Array.from(schools).map((school: string) => {
+                  const handleCheckedChange = (checked: boolean) => {
 
-                  setSchoolFilters((prevFilters) => {
-                    const newFilterSet = new Set(prevFilters);
-                    if (checked) {
-                      newFilterSet.add(school);
-                    } else {
-                      newFilterSet.delete(school);
-                    }
-                    return newFilterSet;
-                  })
-                }
-                const checked = schoolFilters?.has(school);
-                return (
-                  <DropdownMenuCheckboxItem checked={checked} onCheckedChange={handleCheckedChange}>{school}</DropdownMenuCheckboxItem>
-                )
-              })
-            }
-          </DropdownMenuContent>
-        </DropdownMenu>
+                    setSchoolFilters((prevFilters) => {
+                      const newFilterSet = new Set(prevFilters);
+                      if (checked) {
+                        newFilterSet.add(school);
+                      } else {
+                        newFilterSet.delete(school);
+                      }
+                      return newFilterSet;
+                    })
+                  }
+                  const checked = schoolFilters?.has(school);
+                  return (
+                    <DropdownMenuCheckboxItem checked={checked} onCheckedChange={handleCheckedChange}>{school}</DropdownMenuCheckboxItem>
+                  )
+                })
+              }
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className='flex flex-row'>
+          <span className='self-center text-gray-600 text-sm pr-2'>{searchQuery === '' && yearFilters.size === 0 && schoolFilters.size === 0 && majorFilters.size === 0 ? '' : filteredScholars?.length + ' ' + resultString}</span>
           <Input className="w-96" placeholder="Search for a scholar" onChange={handleOnChange} />
-          <span className='self-center text-gray-600 text-sm pl-2'>{isLoading ? '' : filteredScholars?.length + ' ' + resultString}</span>
         </div>
       </div>
     )
@@ -239,39 +248,32 @@ export default function ScholarsPage() {
     )
   }
 
-  // function renderPagination() {
-  //   const setPreviousPage = () => {
-  //     setCurrentPage((page) => {
-  //       if (page >= 2) {
-  //         return page - 1;
-  //       } else {
-  //         return page
-  //       }
-  //     })
-  //   }
+  function renderPagination() {
+    const setPreviousPage = () => {
+      setCurrentPage((page) => {
+        return page - 1;
+      })
+    }
 
-  //   const setNextPage = () => {
-  //     setCurrentPage((page) => {
-  //       return page + 1;
-  //     })
-  //   }
+    const setNextPage = () => {
+      setCurrentPage((page) => {
+        return page + 1;
+      })
+    }
 
-  //   return (
-  //     <Pagination>
-  //       <PaginationContent>
-  //         <PaginationItem>
-  //           <PaginationPrevious onClick={setPreviousPage} />
-  //         </PaginationItem>
-  //         <PaginationItem>
-  //           <PaginationLink href="#">1</PaginationLink>
-  //         </PaginationItem>
-  //         <PaginationItem>
-  //           <PaginationNext onClick={setNextPage} />
-  //         </PaginationItem>
-  //       </PaginationContent>
-  //     </Pagination>
-  //   )
-  // }
+    return (!isLoading && searchQuery === '' && yearFilters.size === 0 && schoolFilters.size === 0 && majorFilters.size === 0 &&
+      <Pagination className='mt-4'>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious onClick={setPreviousPage}/>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext onClick={setNextPage} />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    )
+  }
 
   function renderCard(scholar: Scholar) {
     return (
