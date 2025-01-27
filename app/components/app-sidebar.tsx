@@ -17,7 +17,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/app/components/ui/sidebar"
-import { ChevronUp, Home, Settings, User2, BookOpenText } from "lucide-react"
+import { ChevronUp, Home, Settings, User2, BookOpenText, Shield } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
 import { User } from '@supabase/supabase-js';
 import { getUser } from '../lib/actions';
@@ -38,6 +38,11 @@ const tabs = [
         url: "/settings",
         icon: Settings,
     },
+    {
+      title: "Admin",
+      url: "/admin",
+      icon: Shield
+    }
 ];
 
 export function AppSidebar() {

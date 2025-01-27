@@ -9,7 +9,6 @@ export default function Page() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-
       <main className="flex-grow">
         <section className="py-20 sm:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,7 +50,6 @@ export default function Page() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

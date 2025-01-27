@@ -7,7 +7,6 @@ import {
 } from "@/app/components/ui/card"
 import { Separator } from "@/app/components/ui/separator"
 import { ProfileForm } from "./form"
-import { Footer } from "@/app/components/ui/footer"
 import React from "react"
 
 export default async function SettingsPage() {
@@ -23,7 +22,6 @@ export default async function SettingsPage() {
                 <ProfileForm />
             </CardContent>
         </Card>
-        <Footer />
         </div>
     )
 }

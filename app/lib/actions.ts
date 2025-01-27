@@ -8,10 +8,28 @@
 import { createClient } from '@/app/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { Scholar, scholarKeys } from '../types/scholar';
+
+export async function parseScholarData(rawData: any[]) {
+  const supabase = await createClient();
+  const scholarRawData = rawData.slice(1);
+  const parsedScholarData: Scholar[] = [];
+  scholarRawData.forEach((scholarInfo: string[]) => {
+    if (scholarInfo.length > 0) {
+      const scholar: Scholar = scholarKeys.reduce((acc, key, index) => {
+        acc[key as keyof Scholar] = scholarInfo[index] ? scholarInfo[index].toString() : undefined;
+        return acc;
+      }, {} as Scholar);
+      parsedScholarData.push(scholar);
+    }
+  });
+
+  const {error} = await supabase.from('scholars').insert(parsedScholarData);
+}
 
 export async function fetchScholars() {
   const supabase = await createClient();
-  const { data: profiles, error } = await supabase.from('profile').select();
+  const { data: profiles, error } = await supabase.from('scholars').select().order('year', { ascending: false });
 
   return profiles;
 }
@@ -79,8 +97,7 @@ export async function signup(prevState: any, formData: FormData) {
 
 export async function isEmailWhitelisted(email: string) {
   const supabase = await createClient();
-  const { data: matching_rows } = await supabase.from('email_whitelist').select('email').eq('email', email);
-
+  const { data: matching_rows } = await supabase.from('email_whitelist').select('email').eq('email', email)
   return matching_rows?.length === 1;
 }
 
