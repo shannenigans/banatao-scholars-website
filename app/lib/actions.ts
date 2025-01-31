@@ -9,6 +9,7 @@ import { createClient } from '@/app/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Scholar, scholarKeys } from '../types/scholar';
+import { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
 
 export async function parseScholarData(rawData: any[]) {
   const supabase = await createClient();
@@ -34,23 +35,47 @@ export async function fetchScholars() {
   return profiles;
 }
 
-export async function addProfile(formValues: any) {
+export async function addProfile(formData: FormData) {
   const supabase = await createClient();
 
+  const scholarInfo = scholarKeys.reduce((acc, key) => {
+    const val = formData.get(key);
+    if (val !== undefined && val !== null) {
+      acc[key] = val; 
+    }
+
+    return acc;
+  }, {} as Partial<Scholar>)
+
+  let response: PostgrestSingleResponse<any> | undefined;
   try {
-    const { error } = await supabase.from('profile').insert({ ...formValues });
+    response = await supabase.from('scholars').insert({ ...scholarInfo });
   } catch (ex) {
 
+  } finally {
+    return response;
   }
 }
 
-export async function updateProfile(id: number, formValues: any) {
+export async function updateScholar(id: number, formData: FormData) {
   const supabase = await createClient();
 
+  const scholarInfo = scholarKeys.reduce((acc, key) => {
+    const val = formData.get(key);
+    if (val !== undefined && val !== null) {
+      acc[key] = val; 
+    }
+
+    return acc;
+  }, {} as Partial<Scholar>)
+
+  let response: PostgrestSingleResponse<any> | undefined;
   try {
-    const { error, status, statusText } = await supabase.from('profile').update({ ...formValues }).eq('id', id);
+    response = await supabase.from('scholars').update({ ...scholarInfo}).eq('id', id);
   } catch (ex) {
 
+  } finally {
+    return response;
   }
 }
 
@@ -170,4 +195,10 @@ export async function signInWithLinkedIn() {
   } catch (error) {
     console.log('ERROR' + error)
   }
+}
+export async function uploadFileToBucket(formData: FormData, userId: string) {
+  const supabase = await createClient();
+  const file = formData.get('profilePic') as File;
+
+  const { data, error } = await supabase.storage.from('profile_pictures').upload(`${userId}/profile.jpg`, file, { upsert: true });
 }

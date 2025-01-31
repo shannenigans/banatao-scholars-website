@@ -10,11 +10,11 @@ export const SYSTEMS_ENGINEERING_MAJORS = ["Symbolic Systems", "Product Design"]
 export const BIO_ENGINEERING_MAJORS = ["Bioengineering", "Biomedical", "Biochemical"];
 
 export const enum DEPARTMENT {
-    COMPUTER_SCIENCE = "Computer Science",
+    COMPUTER_SCIENCE = "Math and Computer Science",
     EARTH_SCIENCE = "Earth and Environmental Sciences",
     AERO_ENGINEERING = "Aerospace and Aeronautical Engineering",
     CIVIL_ENGINEERING = "Civil Engineering",
-    SYSTEMS_ENGINEERING = "Systems Engineering",
+    SYSTEMS_ENGINEERING = "Industrial and Systems Engineering",
     BIO_ENGINEERING = "Biomedical and Biochemical Engineering",
     OTHER = "Other"
 }

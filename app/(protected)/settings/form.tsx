@@ -17,36 +17,39 @@ import { Input } from "@/app/components/ui/input"
 import { Textarea } from "@/app/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
 import { Label } from '@/app/components/ui/label';
-import { PlusCircle } from 'lucide-react';
-import { addProfile, getUser, updateProfile } from '@/app/lib/actions';
+import { addProfile, getUser, updateScholar, uploadFileToBucket } from '@/app/lib/actions';
 import { createBrowserClient } from '@/app/utils/supabase/client';
 import { Scholar } from '@/app/types/scholar';
+import { SCHOLAR_STATUS } from '@/app/lib/utils';
+import { PostgrestSingleResponse } from '@supabase/supabase-js';
+import { useToast } from '@/app/hooks/use-toast';
 
 const MAX_FILE_SIZE = 20000000
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
-    firstName: z.string().min(2, {
+    first: z.string().min(2, {
         message: 'First name must be at least 2 characters'
     }).max(50),
-    lastName: z.string().min(2, {
+    last: z.string().min(2, {
         message: 'Last name must be at least 2 characters'
     }).max(50),
-    undergrad: z.string().max(50).optional(),
-    grad: z.string().max(50).optional(),
-    undergradGraduationYear: z.number().optional(),
-    gradGraduationYear: z.number().optional(),
-    location: z.string().min(2).max(50).optional(),
+    email: z.string().max(50).optional(),
+    school: z.string().max(50).optional(),
+    currentCity: z.string().min(2).max(50),
+    currentState: z.string().min(2).optional(),
     major: z.string().min(2).max(50).optional(),
     bio: z.string().max(1000).optional(),
-    company: z.string().max(50).optional(),
+    company: z.string().max(50),
     description: z.string().max(50).optional(),
-    // TODO: Fix photo upload
+    cellPhone: z.string().max(13).optional(),
     profilePic: z.any().refine((file) => {
         if (file && file.length > 0)
-        return file[0].size <= MAX_FILE_SIZE}, 'Max image size is 2MB').refine((file) => {
-    if (file.length > 0) 
-    return ACCEPTED_IMAGE_TYPES.includes(file[0].type)}, "Please upload .jpg, .jpeg, and .png formats only.")
+            return file[0].size <= MAX_FILE_SIZE
+    }, 'Max image size is 2MB').refine((file) => {
+        if (file.length > 0)
+            return ACCEPTED_IMAGE_TYPES.includes(file[0].type)
+    }, "Please upload .jpg, .jpeg, and .png formats only.").optional(),
 });
 
 const enum SECTION {
@@ -58,62 +61,100 @@ const enum SECTION {
 const initialUserInfoState: Scholar = {
     id: 0,
     email: '',
-    firstName: '',
-    lastName: '',
-    description: ''
+    first: '',
+    last: '',
+    description: '',
+    status: SCHOLAR_STATUS.GRADUATED,
+    year: '',
+    school: '',
+    currentCity: '',
+    currentState: ''
 }
 
 export function ProfileForm() {
     const [preview, setPreview] = React.useState('');
-    const [showRole, setShowRole] = React.useState(false);
-    const [showGrad, setShowGrad] = React.useState(false);
-    const [showUnderGrad, setShowUndergrad] = React.useState(false);
     const [userInfo, setUserInfo] = React.useState<Scholar>(initialUserInfoState);
+    const [userId, setUserId] = React.useState('');
+    const [response, setResponse] = React.useState<PostgrestSingleResponse<any>| undefined>(undefined);
+    const { toast } = useToast();
 
     React.useEffect(() => {
         const checkUser = async () => {
             const supabase = createBrowserClient();
             const data = await getUser();
-            const { data: scholarProfile } = await supabase.from('profile').select().eq('email', data?.user?.email);
+            if (data?.user?.id) {
+                setUserId(data?.user?.id);
+            }
+
+            const { data: scholarProfile } = await supabase.from('scholars').select().eq('email', data?.user?.email);
             if (scholarProfile) {
                 setUserInfo(scholarProfile[0] as Scholar);
+                setPreview(scholarProfile[0].imageUrl ?? '')
             }
         }
-
         checkUser();
     }, []);
 
     React.useEffect(() => {
-        setShowGrad(!!userInfo?.grad || !!userInfo?.gradGraduationYear);
-        setShowRole(!!userInfo?.description || !!userInfo?.company);
-        setShowUndergrad(!!userInfo?.undergrad || !!userInfo?.undergradGraduationYear);
-    }, [userInfo])
-
+        if (response) {
+            const { statusText, error,  } = response;
+            toast({
+                variant: error ? 'destructive' : 'default',
+                description: error ? statusText : 'Updated profile'
+            });
+        }
+    }, [response])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         values: {
-            firstName: userInfo ? userInfo.firstName : '',
-            lastName: userInfo ? userInfo.lastName : '',
-            location: userInfo ? userInfo.location  : '',
+            first: userInfo ? userInfo.first : '',
+            last: userInfo ? userInfo.last : '',
+            currentCity: userInfo ? userInfo.currentCity : '',
+            currentState: userInfo ? userInfo.currentState : '',
             description: userInfo ? userInfo.description : '',
-            gradGraduationYear: userInfo ? userInfo.gradGraduationYear : undefined,
-            undergradGraduationYear: userInfo ? userInfo.undergradGraduationYear : undefined,
-            company: userInfo ? userInfo.company : undefined,
-            profilePic: userInfo.imageUrl || undefined,
-            undergrad: userInfo ? userInfo.undergrad : undefined,
-            bio: userInfo ? userInfo.bio : undefined,
-            grad: userInfo ? userInfo.grad : undefined,
-            major: userInfo ? userInfo.major : undefined
-        }
+            company: userInfo ? userInfo.company : '',
+            profilePic: userInfo ? userInfo.profilePic : '',
+            school: userInfo ? userInfo.school : '',
+            bio: userInfo ? userInfo.bio : '',
+            major: userInfo ? userInfo.major : '',
+            cellPhone: userInfo ? userInfo.cellPhone : '',
+            email: userInfo ? userInfo.email : ''
+        },
+        defaultValues: {
+            currentCity: '',
+            currentState: ''
+        }   
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        if (userInfo && values !== userInfo) {
-            updateProfile(userInfo.id, values);
-        } else {
-            addProfile(values);
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        const formData = new FormData();
+
+        Object.entries(values).forEach((entry) => {
+            const [key, val] = entry;
+
+            if (key === 'profilePic' && val?.length > 0) {
+                const file = val[0];
+                formData.append('profilePic', file);
+                formData.append('imageUrl', `https://hisjorhwwdqudqtqzidc.supabase.co/storage/v1/object/public/profile_pictures/${userId}/profile.jpg`);
+                console.log(formData.get('profilePic'))
+            } else {
+                formData.append(key, val);
+            }
+        });
+
+        if (formData.get('profilePic')) {
+            await uploadFileToBucket(formData, userId);
         }
+
+        let submitResponse;
+        if (userInfo) {
+            submitResponse = await updateScholar(userInfo.id, formData);
+        } else {
+            submitResponse = await addProfile(formData);
+        }
+
+        setResponse(submitResponse);
     }
 
     function onReset() {
@@ -121,7 +162,7 @@ export function ProfileForm() {
         setPreview('');
     }
 
-    function getPhotoInfo(ev: any) {
+    async function getPhotoInfo(ev: any) {
         const dataTransfer = new DataTransfer();
         const file = ev.target?.files ? ev.target?.files[0] : null;
 
@@ -148,8 +189,8 @@ export function ProfileForm() {
                                 <FormItem className="my-2">
                                     <FormLabel>Upload profile photo</FormLabel>
                                     <FormControl>
-                                        <Input type="file" {...rest} onChange={(ev) => {
-                                            const { files, previewUrl } = getPhotoInfo(ev);
+                                        <Input type="file" {...rest} onChange={async (ev) => {
+                                            const { files, previewUrl } = await getPhotoInfo(ev);
 
                                             setPreview(previewUrl);
                                             onChange(files);
@@ -160,186 +201,39 @@ export function ProfileForm() {
                             )}
                         />
                     </div>
-                    <div className="flex flex-col w-full basis-3/4">
-                        <FormField
+                    <div className="w-full basis-3/4">
+                        <div className='grid grid-cols-2 gap-3'><FormField
                             control={form.control}
-                            name="firstName"
+                            name="first"
                             render={({ field }) => (
                                 <FormItem className="my-2">
                                     <FormLabel>First name</FormLabel>
                                     <FormControl>
-                                        <Input placeholder={userInfo?.firstName ?? 'Rey'} {...field} />
+                                        <Input placeholder={userInfo?.first ?? 'Rey'} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="lastName"
-                            render={({ field }) => (
-                                <FormItem className="my-2">
-                                    <FormLabel>Last name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder={userInfo?.lastName ?? 'Banatao'} {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        {showRole ? <div>
-                            <Label>Current</Label>
-                            <div className='grid grid-cols-3 gap-3'>
-                                <FormField
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Role</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.description ?? 'Engineer'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="company"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Organization</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.company ?? 'CITRIS'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="location"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Location</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.location ?? 'San Francisco, CA'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                        </div>
-                            :
-                            renderAddButton(SECTION.ROLE)
-                        }
-                        {showUnderGrad ? <div>
-                            <Label>Undergrad</Label>
-                            <div className='grid grid-cols-3 gap-3'>
-                                <FormField
-                                    control={form.control}
-                                    name="major"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Major</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.major ?? 'Computer Science'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="undergrad"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>School</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.undergrad ?? 'UC Berkeley'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="undergradGraduationYear"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Graduation</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.undergradGraduationYear?.toString() ?? '2024'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                            <FormField
+                                control={form.control}
+                                name="last"
+                                render={({ field }) => (
+                                    <FormItem className="my-2">
+                                        <FormLabel>Last name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder={userInfo?.last ?? 'Banatao'} {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            /></div>
 
-                            </div>
-                        </div>
-                            : renderAddButton(SECTION.UNDERGRAD)}
-                        {showGrad ? <div>
-                            <Label>Grad</Label>
-                            <div className='grid grid-cols-3 gap-3'>
-                                <FormField
-                                    control={form.control}
-                                    name="major"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Major</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.major ?? 'Computer science'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="grad"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>School</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.grad ?? 'Stanford'}{...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="gradGraduationYear"
-                                    render={({ field }) => (
-                                        <FormItem className="my-2">
-                                            <FormLabel>Graduation</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder={userInfo?.gradGraduationYear?.toString() ?? '2023'} {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
 
-                            </div>
-                        </div>
-                            :
-                            renderAddButton(SECTION.GRAD)}
-                        <FormField
-                            control={form.control}
-                            name="bio"
-                            render={({ field }) => (
-                                <FormItem className="my-2">
-                                    <FormLabel>Bio</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder={userInfo?.bio ?? "I drink way too much coffee"} {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {renderSchoolInformation()}
+                        {renderCurrentInformation()}
+                        {renderContacts()}
+                        {renderBio()}
                     </div>
                 </div>
                 <div className="flex mt-4 gap-1 justify-end">
@@ -350,29 +244,159 @@ export function ProfileForm() {
         </Form>
     )
 
-    function renderAddButton(section: SECTION) {
-        let buttonString = '';
-        let onClick;
-
-        switch (section) {
-            case SECTION.ROLE:
-                buttonString = 'Add Current Role'
-                onClick = () => setShowRole(true);
-                break;
-            case SECTION.GRAD:
-                buttonString = 'Add Grad'
-                onClick = () => setShowGrad(true);
-                break;
-            case SECTION.UNDERGRAD:
-                buttonString = 'Add Undergrad'
-                onClick = () => setShowUndergrad(true);
-                break;
-        }
-
+    function renderSchoolInformation() {
         return (
-            <Button onClick={onClick} variant='ghost'>
-                <PlusCircle /> {buttonString}
-            </Button>
+            <div className='mt-2'>
+                <Label className='mt-2'>School Information</Label>
+                <div className='grid grid-cols-2 gap-3'>
+                    <FormField
+                        control={form.control}
+                        name="major"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>Major</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.major ?? 'Computer Science'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="school"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>School</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.school ?? 'UC Berkeley'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    function renderCurrentInformation() {
+        return (
+            <div className='mt-2'>
+                <Label className='mt-2'>Where are you now?</Label>
+                <div className='grid grid-cols-4 gap-3'>
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>Role</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.description ?? 'Engineer'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="company"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>Organization</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.company ?? 'CITRIS'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="currentCity"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>City</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.currentCity ?? 'San Francisco'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="currentState"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>State</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.currentState ?? 'CA'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    function renderContacts() {
+        return (
+            <div className='mt-2'>
+                <Label className='mt-2'>How can people contact you?</Label>
+                <div className='grid grid-cols-2 gap-3'>
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.email ?? "hello@gmail.com"} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="cellPhone"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>Cell</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.cellPhone ?? "(909) 333-2222"} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    function renderBio() {
+        return (
+            <div className='mt-2'>
+                <Label className='mt-2'>Tell people a little bit about you</Label>
+
+                <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                        <FormItem className="my-2">
+                            <FormLabel>Bio</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder={userInfo?.bio ?? "I drink way too much coffee"} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
         )
     }
 }

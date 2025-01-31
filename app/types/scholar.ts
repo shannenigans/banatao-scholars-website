@@ -5,7 +5,7 @@ export interface Scholar {
   status: SCHOLAR_STATUS;
   year: string;
   first: string;
-  middle: string;
+  middle?: string;
   last: string;
   school: string;
   major?: string;
@@ -34,6 +34,7 @@ export interface Scholar {
   // Additional fields not in CSV
   description: string;
   company?: string;
+  profilePic?: string;
   imageUrl?: string;
   bio?: string
 }
@@ -43,5 +44,6 @@ export const scholarKeys: (keyof Scholar)[] = [
   "oldEmails", "cellPhone", "schoolPhone", "homePhone", "schoolAddress", 
   "schoolAddress2", "schoolCity", "schoolState", "schoolZip", "homeAddress", 
   "homeCity", "homeState", "homeZip", "parents", "parentsContact", 
-  "currentAddress", "currentCity", "currentState", "currentZip", "currentPhone"
+  "currentAddress", "currentCity", "currentState", "currentZip", "currentPhone", 
+  "description", "company", "bio",
 ];

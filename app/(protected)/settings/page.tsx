@@ -1,3 +1,5 @@
+import React from "react"
+
 import {
     Card,
     CardContent,
@@ -7,7 +9,6 @@ import {
 } from "@/app/components/ui/card"
 import { Separator } from "@/app/components/ui/separator"
 import { ProfileForm } from "./form"
-import React from "react"
 
 export default async function SettingsPage() {
     return (

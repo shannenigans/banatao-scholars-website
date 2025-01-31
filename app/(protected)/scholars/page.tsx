@@ -285,7 +285,7 @@ export default function ScholarsPage() {
             alt={`${scholar.first + ' ' + scholar.last}'s portrait`}
             width={100}
             height={100}
-            className="rounded-full"
+            className="rounded-full w-[100px] h-[100px]"
           />}
           <div>
             <CardTitle className='mb-1'>{scholar.first + ' ' + scholar.last}</CardTitle>

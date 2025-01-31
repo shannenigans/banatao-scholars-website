@@ -5,11 +5,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod";
-import { ALLOWED_FILE_TYPES } from "../lib/utils";
+import { ALLOWED_FILE_TYPES } from "../../lib/utils";
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import XLSX from 'xlsx';
-import { parseScholarData } from '../lib/actions';
+import { parseScholarData } from '../../lib/actions';
+import { useToast } from '@/app/hooks/use-toast';
 
 const formSchema = z.object({
     fileUpload: z.instanceof(FileList)
@@ -23,11 +24,23 @@ const formSchema = z.object({
         )
 });
 
-export default function AdminPage() {
+export default function ImportScholarForm() {
     const [filesToUpload, setFilesToUpload] = React.useState<File[]>();
+    const [formError, setFormError] = React.useState('');
+    const { toast: errorToast } = useToast();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     });
+
+    React.useEffect(() => {
+        if(formError) {
+            errorToast({
+                title: 'Error',
+                variant: 'destructive',
+                description: formError
+            })
+        }
+    }, [formError])
 
     const onSubmit = async () => {
         try {
@@ -60,12 +73,12 @@ export default function AdminPage() {
         if (parsedFiles.success) {
             setFilesToUpload(parsedFiles.data.fileUpload);
         } else {
-            // DISPATCH ERROR TOAST
+            setFormError('Looks like there was something wrong with that file.');
         }
     };
 
     return (
-        <Form {...form}>
+        <Form {...form} >
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <FormField
                     control={form.control}
