@@ -19,8 +19,9 @@ import {
 } from "@/app/components/ui/sidebar"
 import { ChevronUp, Home, Settings, User2, BookOpenText, Shield } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
-import { User } from '@supabase/supabase-js';
-import { getUser } from '../lib/actions';
+import Link from 'next/link';
+import { useUser } from '../hooks/use-user';
+import { isEmailWhitelisted } from '../lib/actions';
 
 const tabs = [
     {
@@ -37,25 +38,26 @@ const tabs = [
         title: "Settings",
         url: "/settings",
         icon: Settings,
-    },
-    {
-      title: "Admin",
-      url: "/admin",
-      icon: Shield
     }
 ];
 
 export function AppSidebar() {
-    const [user, setUser] = React.useState<User | undefined>(undefined);
-    
+    const userContext = useUser();
+    const {supabaseResponseUser} = userContext;
+    const user = supabaseResponseUser?.user;
+    const [isUserAdmin, setIsUserAdmin] = React.useState(false);
+
     React.useEffect(() => {
-      const checkUser = async () => {
-        const data = await getUser();
-        setUser(data?.user ?? undefined);
+      const checkIsAdmin = async () => {
+        if (user?.email) {
+          const whitelistQuery = await isEmailWhitelisted(user?.email);
+          console.log('whitelist', whitelistQuery)
+          setIsUserAdmin(whitelistQuery ? whitelistQuery[0].isAdmin : false);
+        }
       }
 
-      checkUser();
-    }, [])
+      checkIsAdmin();
+    }, [user]);
 
     return (
         <Sidebar>
@@ -95,6 +97,9 @@ export function AppSidebar() {
                   <DropdownMenuItem>
                     <SignOut />
                   </DropdownMenuItem>
+                  {isUserAdmin &&<DropdownMenuItem>
+                    <Link href={'/admin'}>Admin</Link>
+                  </DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>
             </SidebarMenuItem>
