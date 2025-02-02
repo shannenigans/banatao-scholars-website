@@ -93,7 +93,7 @@ export function ProfileForm() {
 
     React.useEffect(() => {
         if (response) {
-            const { statusText, error,  } = response;
+            const { statusText, error} = response;
             toast({
                 variant: error ? 'destructive' : 'default',
                 description: error ? statusText : 'Updated profile'
@@ -132,7 +132,7 @@ export function ProfileForm() {
             if (key === 'profilePic' && val?.length > 0) {
                 const file = val[0];
                 formData.append('profilePic', file);
-                formData.append('imageUrl', `https://hisjorhwwdqudqtqzidc.supabase.co/storage/v1/object/public/profile_pictures/${userId}/profile.jpg`);
+                formData.append('imageUrl', `https://hisjorhwwdqudqtqzidc.supabase.co/storage/v1/object/public/profile_pictures/${user.id}/profile.jpg`);
             } else {
                 formData.append(key, val);
             }
@@ -148,7 +148,7 @@ export function ProfileForm() {
         } else {
             submitResponse = await addProfile(formData);
         }
-
+        
         setResponse(submitResponse);
     }
 

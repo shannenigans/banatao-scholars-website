@@ -72,13 +72,17 @@ export async function updateSession(request: NextRequest) {
   ];
 
   const isAdmin = emailIsWhiteListedQuery ? emailIsWhiteListedQuery[0].isAdmin : false;
-  const isNonAdminAccess = request.nextUrl.pathname.indexOf('/admin') && !isAdmin;
+  const isValidAdminAccess = request.nextUrl.pathname.indexOf('/admin') >= 0 ? isAdmin : true;
+
+  if (!isValidAdminAccess) {
+    return NextResponse.rewrite('http://localhost:3000/loginError')
+  }
 
   if (
     !user &&
     !bypassPaths.some(path => request.nextUrl.pathname.startsWith(path)) &&
     request.nextUrl.pathname.indexOf('.svg') < 0 &&
-    !code || isNonAdminAccess
+    !code
   ) {
     // no user, potentially respond by redirecting the user to the login page
     return redirectToLogin(request);

@@ -73,10 +73,8 @@ export async function updateScholar(id: number, formData: FormData) {
   try {
     response = await supabase.from('scholars').update({ ...scholarInfo}).eq('id', id);
   } catch (ex) {
-
-  } finally {
-    return response;
   }
+  return response;
 }
 
 export async function signInAsUser(prevState: any, formData: FormData){
@@ -132,8 +130,7 @@ export async function signOut() {
         const {error} = await supabase.auth.signOut();
 
         if(error) {
-            console.log('sign out err', error)
-            throw error;
+          throw error;
         } 
     } catch (err) {
         console.log('Sign out error: ' + err)
@@ -210,4 +207,10 @@ export async function uploadFileToBucket(formData: FormData, userId: string) {
   const file = formData.get('profilePic') as File;
 
   const { data, error } = await supabase.storage.from('profile_pictures').upload(`${userId}/profile.jpg`, file, { upsert: true });
+}
+
+export async function getMediaFromBucket() {
+  const supabase = await createClient();
+  const media = await supabase.storage.from('media').list('retreat_2024')
+  return media;
 }
