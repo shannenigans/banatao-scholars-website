@@ -25,6 +25,7 @@ import { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { useToast } from '@/app/hooks/use-toast';
 import { useUser } from '@/app/hooks/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2 } from 'lucide-react';
 
 const MAX_FILE_SIZE = 20000000
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -78,6 +79,7 @@ export function ProfileForm() {
     const [preview, setPreview] = React.useState('');
     const [userInfo, setUserInfo] = React.useState<Scholar>(initialUserInfoState);
     const [response, setResponse] = React.useState<PostgrestSingleResponse<any>| undefined>(undefined);
+    const [isLoadingSubmission, setIsLoadingSubmission] = React.useState(false);
     const { toast } = useToast();
     const userContext = useUser();
     const { supabaseResponseUser, scholarProfile } = userContext;
@@ -86,7 +88,7 @@ export function ProfileForm() {
     React.useEffect(() => {
         if (scholarProfile) {
             setUserInfo(scholarProfile as Scholar);
-            setPreview(scholarProfile?.imageUrl ?? '');
+            setPreview(scholarProfile.imageUrl ? `${scholarProfile?.imageUrl}?t=${new Date().getTime()}` :'');
         }
         setIsLoading(false);
     }, [user]);
