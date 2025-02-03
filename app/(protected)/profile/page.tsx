@@ -10,12 +10,12 @@ import {
 import { Separator } from "@/app/components/ui/separator"
 import { ProfileForm } from "./form"
 
-export default async function SettingsPage() {
+export default async function ProfilePage() {
     return (
         <div className="container p-6 mx-auto">
         <Card> 
             <CardHeader>
-                <CardTitle>Settings</CardTitle>
+                <CardTitle>Profile</CardTitle>
                 <CardDescription>Manage your profile.</CardDescription>
                 <Separator/>
             </CardHeader>

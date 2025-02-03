@@ -113,7 +113,7 @@ export async function signup(prevState: any, formData: FormData) {
     return { errors: { formErrors: error.message }}
   } else {
     revalidatePath('/');
-    redirect('/settings');
+    redirect('/profile');
     return { errors: { formErrors: ''}}
   }
 }
@@ -168,7 +168,7 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: 'http://localhost:3000/settings'
+        redirectTo: 'http://localhost:3000/profile'
       },
     });
 
@@ -189,7 +189,7 @@ export async function signInWithLinkedIn() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "linkedin_oidc",
       options: {
-        redirectTo: 'http://localhost:3000/settings',
+        redirectTo: 'http://localhost:3000/profile',
       },
     })
 

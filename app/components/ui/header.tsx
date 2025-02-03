@@ -12,7 +12,7 @@ export function Header() {
 
   React.useEffect(() => {
     if (supabaseResponseUser?.user) {
-      setLinkTabs([TABS.Home, TABS.Scholars, TABS.Gallery, TABS.Settings]);
+      setLinkTabs([TABS.Home, TABS.Scholars, TABS.Gallery, TABS.Profile]);
     }
   }, [supabaseResponseUser])
 
