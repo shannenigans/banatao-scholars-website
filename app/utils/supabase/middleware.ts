@@ -37,11 +37,13 @@ export async function updateSession(request: NextRequest) {
   const searchParams = new URLSearchParams(request.nextUrl.search);
   const code = searchParams.get('code');
   let emailIsWhiteListed = true;
+  let emailIsWhiteListedQuery = undefined;
   if (code) {
     const { data: session} = await supabase.auth.exchangeCodeForSession(code);
 
     if (session.user?.email) {
-      emailIsWhiteListed = await isEmailWhitelisted(session.user?.email);
+      emailIsWhiteListedQuery = await isEmailWhitelisted(session.user.email)
+      emailIsWhiteListed = emailIsWhiteListedQuery  ? emailIsWhiteListedQuery?.length === 1 : false;
       if (!emailIsWhiteListed) {
         return NextResponse.rewrite('http://localhost:3000/loginError')
       }
@@ -54,7 +56,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (user && user.email) {
-    emailIsWhiteListed = await isEmailWhitelisted(user.email);
+    emailIsWhiteListedQuery = await isEmailWhitelisted(user.email)
+    emailIsWhiteListed = emailIsWhiteListedQuery  ? emailIsWhiteListedQuery?.length === 1 : false;
     if (!emailIsWhiteListed) {
       return NextResponse.rewrite('http://localhost:3000/loginError')
     }
@@ -67,7 +70,14 @@ export async function updateSession(request: NextRequest) {
     '/register',
     '/error'
   ];
-  
+
+  const isAdmin = emailIsWhiteListedQuery ? emailIsWhiteListedQuery[0].isAdmin : false;
+  const isValidAdminAccess = request.nextUrl.pathname.indexOf('/admin') >= 0 ? isAdmin : true;
+
+  if (!isValidAdminAccess) {
+    return NextResponse.rewrite('http://localhost:3000/loginError')
+  }
+
   if (
     !user &&
     !bypassPaths.some(path => request.nextUrl.pathname.startsWith(path)) &&

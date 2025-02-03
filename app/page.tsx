@@ -1,7 +1,6 @@
 "use client";
 
 import { Header } from '@/app/components/ui/header';
-import { Footer } from '@/app/components/ui/footer';
 
 import './styles/globals.css';
 
@@ -13,7 +12,7 @@ export default function Page() {
         <section className="py-20 sm:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+              <h1 className="text-4xl font-extrabold tracking-xtight sm:text-5xl md:text-6xl">
                 Empowering Future Tech Leaders
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-muted-foreground">

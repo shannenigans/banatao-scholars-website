@@ -9,7 +9,7 @@ import { createClient } from '@/app/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Scholar, scholarKeys } from '../types/scholar';
-import { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
+import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 export async function parseScholarData(rawData: any[]) {
   const supabase = await createClient();
@@ -73,10 +73,8 @@ export async function updateScholar(id: number, formData: FormData) {
   try {
     response = await supabase.from('scholars').update({ ...scholarInfo}).eq('id', id);
   } catch (ex) {
-
-  } finally {
-    return response;
   }
+  return response;
 }
 
 export async function signInAsUser(prevState: any, formData: FormData){
@@ -122,8 +120,8 @@ export async function signup(prevState: any, formData: FormData) {
 
 export async function isEmailWhitelisted(email: string) {
   const supabase = await createClient();
-  const { data: matching_rows } = await supabase.from('email_whitelist').select('email').eq('email', email)
-  return matching_rows?.length === 1;
+  const { data: matching_rows } = await supabase.from('email_whitelist').select().eq('email', email)
+  return matching_rows
 }
 
 export async function signOut() {
@@ -132,8 +130,7 @@ export async function signOut() {
         const {error} = await supabase.auth.signOut();
 
         if(error) {
-            console.log('sign out err', error)
-            throw error;
+          throw error;
         } 
     } catch (err) {
         console.log('Sign out error: ' + err)
@@ -152,6 +149,15 @@ export async function getUser() {
   } catch (ex) {
 
   }
+}
+
+export async function getUserProfile(email: string | undefined) {
+  const supabase = await createClient();
+  if (email) {
+    const { data: scholarProfile } = await supabase.from('scholars').select().eq('email', email);
+    return scholarProfile ? scholarProfile[0] : null;
+  }
+  return null;
 }
 
 // Handle OAuth sign in server side and return redirect url
@@ -200,5 +206,12 @@ export async function uploadFileToBucket(formData: FormData, userId: string) {
   const supabase = await createClient();
   const file = formData.get('profilePic') as File;
 
-  const { data, error } = await supabase.storage.from('profile_pictures').upload(`${userId}/profile.jpg`, file, { upsert: true });
+  const { data, error } = await supabase.storage.from('profile_pictures').upload(`${userId}/profile.jpg`, file, { cacheControl: '1000', upsert: true });
 }
+
+export async function getMediaFromBucket() {
+  const supabase = await createClient();
+  const media = await supabase.storage.from('media').list('retreat_2024')
+  return media;
+}
+

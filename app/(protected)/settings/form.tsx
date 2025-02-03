@@ -17,12 +17,15 @@ import { Input } from "@/app/components/ui/input"
 import { Textarea } from "@/app/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
 import { Label } from '@/app/components/ui/label';
-import { addProfile, getUser, updateScholar, uploadFileToBucket } from '@/app/lib/actions';
+import { addProfile, updateScholar, uploadFileToBucket } from '@/app/lib/actions';
 import { createBrowserClient } from '@/app/utils/supabase/client';
 import { Scholar } from '@/app/types/scholar';
 import { SCHOLAR_STATUS } from '@/app/lib/utils';
 import { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { useToast } from '@/app/hooks/use-toast';
+import { useUser } from '@/app/hooks/use-user';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2 } from 'lucide-react';
 
 const MAX_FILE_SIZE = 20000000
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -72,32 +75,27 @@ const initialUserInfoState: Scholar = {
 }
 
 export function ProfileForm() {
+    const [isLoading, setIsLoading] = React.useState(true);
     const [preview, setPreview] = React.useState('');
     const [userInfo, setUserInfo] = React.useState<Scholar>(initialUserInfoState);
-    const [userId, setUserId] = React.useState('');
     const [response, setResponse] = React.useState<PostgrestSingleResponse<any>| undefined>(undefined);
+    const [isLoadingSubmission, setIsLoadingSubmission] = React.useState(false);
     const { toast } = useToast();
+    const userContext = useUser();
+    const { supabaseResponseUser, scholarProfile } = userContext;
+    const user = supabaseResponseUser?.user;
 
     React.useEffect(() => {
-        const checkUser = async () => {
-            const supabase = createBrowserClient();
-            const data = await getUser();
-            if (data?.user?.id) {
-                setUserId(data?.user?.id);
-            }
-
-            const { data: scholarProfile } = await supabase.from('scholars').select().eq('email', data?.user?.email);
-            if (scholarProfile) {
-                setUserInfo(scholarProfile[0] as Scholar);
-                setPreview(scholarProfile[0].imageUrl ?? '')
-            }
+        if (scholarProfile) {
+            setUserInfo(scholarProfile as Scholar);
+            setPreview(scholarProfile.imageUrl ? `${scholarProfile?.imageUrl}?t=${new Date().getTime()}` :'');
         }
-        checkUser();
-    }, []);
+        setIsLoading(false);
+    }, [user]);
 
     React.useEffect(() => {
         if (response) {
-            const { statusText, error,  } = response;
+            const { statusText, error} = response;
             toast({
                 variant: error ? 'destructive' : 'default',
                 description: error ? statusText : 'Updated profile'
@@ -136,15 +134,14 @@ export function ProfileForm() {
             if (key === 'profilePic' && val?.length > 0) {
                 const file = val[0];
                 formData.append('profilePic', file);
-                formData.append('imageUrl', `https://hisjorhwwdqudqtqzidc.supabase.co/storage/v1/object/public/profile_pictures/${userId}/profile.jpg`);
-                console.log(formData.get('profilePic'))
+                formData.append('imageUrl', `https://hisjorhwwdqudqtqzidc.supabase.co/storage/v1/object/public/profile_pictures/${user.id}/profile.jpg`);
             } else {
                 formData.append(key, val);
             }
         });
 
-        if (formData.get('profilePic')) {
-            await uploadFileToBucket(formData, userId);
+        if (formData.get('profilePic') && supabaseResponseUser?.user?.id) {
+            await uploadFileToBucket(formData, supabaseResponseUser?.user.id);
         }
 
         let submitResponse;
@@ -153,13 +150,12 @@ export function ProfileForm() {
         } else {
             submitResponse = await addProfile(formData);
         }
-
+        
         setResponse(submitResponse);
     }
 
     function onReset() {
         form.reset();
-        setPreview('');
     }
 
     async function getPhotoInfo(ev: any) {
@@ -176,74 +172,79 @@ export function ProfileForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="flex flex-row gap-4">
-                    <div className="flex flex-col w-full basis-1/4">
-                        <Avatar className='flex self-center w-40 h-40 mt-2'>
-                            <AvatarImage src={preview} />
-                            <AvatarFallback>?</AvatarFallback>
-                        </Avatar>
-                        <FormField
-                            control={form.control}
-                            name="profilePic"
-                            render={({ field: { onChange, value, ...rest } }) => (
-                                <FormItem className="my-2">
-                                    <FormLabel>Upload profile photo</FormLabel>
-                                    <FormControl>
-                                        <Input type="file" {...rest} onChange={async (ev) => {
-                                            const { files, previewUrl } = await getPhotoInfo(ev);
-
-                                            setPreview(previewUrl);
-                                            onChange(files);
-                                        }} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <div className="w-full basis-3/4">
-                        <div className='grid grid-cols-2 gap-3'><FormField
-                            control={form.control}
-                            name="first"
-                            render={({ field }) => (
-                                <FormItem className="my-2">
-                                    <FormLabel>First name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder={userInfo?.first ?? 'Rey'} {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                            <FormField
-                                control={form.control}
-                                name="last"
-                                render={({ field }) => (
-                                    <FormItem className="my-2">
-                                        <FormLabel>Last name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder={userInfo?.last ?? 'Banatao'} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            /></div>
-
-
-                        {renderSchoolInformation()}
-                        {renderCurrentInformation()}
-                        {renderContacts()}
-                        {renderBio()}
-                    </div>
-                </div>
-                <div className="flex mt-4 gap-1 justify-end">
-                    <Button type="submit">Save</Button>
-                    <Button variant="outline" type="reset" onClick={onReset}>Cancel</Button>
-                </div>
+                {isLoading ? renderSkeleton() : renderFormContent()}
             </form>
         </Form>
     )
 
+    function renderFormContent() {
+        return (
+            <><div className="flex flex-row gap-4">
+            <div className="flex flex-col w-full basis-1/4">
+                <Avatar className='flex self-center w-40 h-40 mt-2'>
+                    <AvatarImage src={preview} />
+                    <AvatarFallback>?</AvatarFallback>
+                </Avatar>
+                <FormField
+                    control={form.control}
+                    name="profilePic"
+                    render={({ field: { onChange, value, ...rest } }) => (
+                        <FormItem className="my-2">
+                            <FormLabel>Upload profile photo</FormLabel>
+                            <FormControl>
+                                <Input type="file" {...rest} onChange={async (ev) => {
+                                    const { files, previewUrl } = await getPhotoInfo(ev);
+
+                                    setPreview(previewUrl);
+                                    onChange(files);
+                                }} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <div className="w-full basis-3/4">
+                <div className='grid grid-cols-2 gap-3'><FormField
+                    control={form.control}
+                    name="first"
+                    render={({ field }) => (
+                        <FormItem className="my-2">
+                            <FormLabel>First name</FormLabel>
+                            <FormControl>
+                                <Input placeholder={userInfo?.first ?? 'Rey'} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                    <FormField
+                        control={form.control}
+                        name="last"
+                        render={({ field }) => (
+                            <FormItem className="my-2">
+                                <FormLabel>Last name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={userInfo?.last ?? 'Banatao'} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    /></div>
+
+
+                {renderSchoolInformation()}
+                {renderCurrentInformation()}
+                {renderContacts()}
+                {renderBio()}
+            </div>
+        </div>
+        <div className="flex mt-4 gap-1 justify-end">
+            <Button type="submit">Save</Button>
+            <Button variant="outline" type="reset" onClick={onReset}>Cancel</Button>
+        </div></>
+        )
+    }
     function renderSchoolInformation() {
         return (
             <div className='mt-2'>
@@ -399,4 +400,16 @@ export function ProfileForm() {
             </div>
         )
     }
+
+    function renderSkeleton() {
+        return (
+          <div className="flex flex-col space-y-3 h-full">
+            <Skeleton className="h-[125px] w-full rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        )
+      }
 }

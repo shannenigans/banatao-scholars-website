@@ -9,10 +9,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar />
       <div className='flex flex-col w-full justify-between'>
-      <main className="w-full">
+      <main className="w-full h-full">
         <SidebarTrigger />
         {children}
       </main>

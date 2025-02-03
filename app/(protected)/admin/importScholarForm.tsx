@@ -53,7 +53,6 @@ export default function ImportScholarForm() {
 
                 form.reset();
             }
-
         } catch (ex) {
             console.log('Exception reading xlsx file', ex)
         }

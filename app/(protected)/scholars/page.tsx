@@ -22,10 +22,11 @@ import Image from "next/image";
 import { Input } from "@/app/components/ui/input";
 import { useDebounce } from '@/app/hooks/use-debounce';
 import { fetchScholars } from '@/app/lib/actions';
-import { Briefcase, MapPin, Mail, Phone, Filter } from 'lucide-react';
+import { Briefcase, MapPin, Mail, Phone, Filter, Eraser } from 'lucide-react';
 import { SCHOLAR_STATUS } from '@/app/lib/utils';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DEPARTMENT, getDepartmentByMajor, MAJORS_MAP } from '@/app/lib/majors';
+import { Button } from '@/components/ui/button';
 
 const DEFAULT_SCHOLARS_PER_PAGE = 6;
 const DELAY = 1000;
@@ -38,6 +39,7 @@ export default function ScholarsPage() {
   const [schoolFilters, setSchoolFilters] = React.useState<Set<string>>(new Set<string>());
   const [yearFilters, setYearFilters] = React.useState<Set<string>>(new Set<string>());
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [isClearFiltersEnabled, setIsClearFiltersEnabled] = React.useState(false);
   const debouncedValue = useDebounce(searchQuery, DELAY);
 
   React.useEffect(() => {
@@ -58,12 +60,13 @@ export default function ScholarsPage() {
         let hasMajorFilter = false;
         if (scholar.major) {
           const department = getDepartmentByMajor(scholar.major);
-          hasMajorFilter = majorFilters.has(department);
+          hasMajorFilter = majorFilters.has(department) || majorFilters.has(scholar.major);
         }
 
         return schoolFilters?.has(scholar.school) || yearFilters.has(scholar.year) || hasMajorFilter
       });
       setFilteredScholars(newFilteredScholars);
+      setIsClearFiltersEnabled(true);
     }
   }, [schoolFilters, majorFilters, yearFilters])
 
@@ -124,9 +127,17 @@ export default function ScholarsPage() {
     setSearchQuery(searchValue);
   }
 
+  const resetFilters = () => {
+    majorFilters.clear();
+    yearFilters.clear();
+    schoolFilters.clear();
+  }
+
   const resetScholars = () => {
     const pagedScholars = fetchedScholars?.filter((scholar: Scholar) => scholar.status === SCHOLAR_STATUS.ACTIVE || scholar.status === SCHOLAR_STATUS.GRADUATED).slice((currentPage - 1) * DEFAULT_SCHOLARS_PER_PAGE, (currentPage * DEFAULT_SCHOLARS_PER_PAGE));
-    setFilteredScholars(pagedScholars)
+    setFilteredScholars(pagedScholars);
+    setIsClearFiltersEnabled(false);
+    resetFilters();
   }
 
   const resultString = filteredScholars?.length === 1 ? ' result' : ' results';
@@ -148,6 +159,7 @@ export default function ScholarsPage() {
       <div className="my-4 justify-between flex">
         <div className='flex gap-2'>
           <div className='flex flex-row self-center text-sm text-muted-foreground'><Filter className='text-md pr-2' /><span className='flex self-center'>Filter by:</span> </div>
+          <>
           <DropdownMenu>
             <DropdownMenuTrigger className='flex flex-row self-center text-sm text-muted-foreground'>Year</DropdownMenuTrigger>
             <DropdownMenuContent className='overflow-y-scroll max-h-[200px]'>
@@ -231,6 +243,8 @@ export default function ScholarsPage() {
               }
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="outline" onClick={resetScholars} disabled={!isClearFiltersEnabled}><Eraser/>Clear</Button>
+          </>
         </div>
         <div className='flex flex-row'>
           <span className='self-center text-gray-600 text-sm pr-2'>{searchQuery === '' && yearFilters.size === 0 && schoolFilters.size === 0 && majorFilters.size === 0 ? '' : filteredScholars?.length + ' ' + resultString}</span>
@@ -281,7 +295,7 @@ export default function ScholarsPage() {
       <Card key={scholar.id} className="flex flex-col">
         <CardHeader className="flex-row gap-4 items-center">
           {<Image
-            src={scholar.imageUrl ? scholar.imageUrl : '/unknown_avatar.svg'}
+            src={scholar.imageUrl ? `${scholar.imageUrl}?t=${new Date().getTime()}` : '/unknown_avatar.svg'}
             alt={`${scholar.first + ' ' + scholar.last}'s portrait`}
             width={100}
             height={100}
@@ -330,10 +344,10 @@ export default function ScholarsPage() {
   function renderSkeleton() {
     return (
       <div className="flex flex-col space-y-3">
-        <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+        <Skeleton className="h-[125px] w-full rounded-xl" />
         <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
         </div>
       </div>
     )

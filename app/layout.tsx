@@ -1,6 +1,7 @@
 'use client';
 import { Toaster } from '@/app/components/ui/toaster';
 import './styles/globals.css';
+import UserProvider from './hooks/use-user';
 
 export default function RootLayout({
   children,
@@ -12,8 +13,9 @@ export default function RootLayout({
       <script src="https://accounts.google.com/gsi/client" async></script>
       <head>
       </head>
-      <body><Toaster />
-        {children}</body>
+      <UserProvider>
+        <body><Toaster />
+          {children}</body></UserProvider>
     </html>
   );
 }

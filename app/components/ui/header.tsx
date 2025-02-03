@@ -3,24 +3,18 @@ import Link from "next/link";
 
 import { TABS } from "@/app/constants/tabs";
 import { Tab } from "@/app/types/tab";
-import { getUser } from "@/app/lib/actions";
+import { useUser } from "@/app/hooks/use-user";
 
 export function Header() {
-  const [linkTabs, setLinkTabs] = React.useState<Tab[]>([]);
+  const [linkTabs, setLinkTabs] = React.useState<Tab[]>([TABS.Home, TABS.SignIn]);
+  const userContext = useUser();
+  const { supabaseResponseUser } = userContext;
 
   React.useEffect(() => {
-    async function checkUser() {
-      const data =  await getUser();
-      
-      if (data && data.user) {
-        setLinkTabs([TABS.Home, TABS.Scholars, TABS.Settings]);
-      } else {
-        setLinkTabs([TABS.Home, TABS.SignIn]);
-      }
+    if (supabaseResponseUser?.user) {
+      setLinkTabs([TABS.Home, TABS.Scholars, TABS.Gallery, TABS.Settings]);
     }
-
-    checkUser();
-  }, [])
+  }, [supabaseResponseUser])
 
   return (
     <header className="border-b">
