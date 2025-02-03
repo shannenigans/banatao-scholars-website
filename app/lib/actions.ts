@@ -215,8 +215,3 @@ export async function getMediaFromBucket() {
   return media;
 }
 
-export async function getMediaFromBucket() {
-  const supabase = await createClient();
-  const media = await supabase.storage.from('media').list('retreat_2024')
-  return media;
-}
