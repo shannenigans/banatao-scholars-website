@@ -295,7 +295,7 @@ export default function ScholarsPage() {
       <Card key={scholar.id} className="flex flex-col">
         <CardHeader className="flex-row gap-4 items-center">
           {<Image
-            src={scholar.imageUrl ? scholar.imageUrl : '/unknown_avatar.svg'}
+            src={scholar.imageUrl ? `${scholar.imageUrl}?t=${new Date().getTime()}` : '/unknown_avatar.svg'}
             alt={`${scholar.first + ' ' + scholar.last}'s portrait`}
             width={100}
             height={100}

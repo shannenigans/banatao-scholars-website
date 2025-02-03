@@ -206,7 +206,7 @@ export async function uploadFileToBucket(formData: FormData, userId: string) {
   const supabase = await createClient();
   const file = formData.get('profilePic') as File;
 
-  const { data, error } = await supabase.storage.from('profile_pictures').upload(`${userId}/profile.jpg`, file, { upsert: true });
+  const { data, error } = await supabase.storage.from('profile_pictures').upload(`${userId}/profile.jpg`, file, { cacheControl: '1000', upsert: true });
 }
 
 export async function getMediaFromBucket() {
@@ -214,3 +214,4 @@ export async function getMediaFromBucket() {
   const media = await supabase.storage.from('media').list('retreat_2024')
   return media;
 }
+
