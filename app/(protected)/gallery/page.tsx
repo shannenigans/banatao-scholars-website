@@ -4,13 +4,10 @@ import React from 'react';
 import { getMediaFromBucket } from '@/app/lib/actions';
 import Image from "next/image";
 import { Loader2 } from 'lucide-react';
+import { FileObject } from '@supabase/storage-js';
 
-type Media = {
-    id: string,
-    name: string,
-    data: any[]
-    error: any
-}
+// Just use the FileObject type directly from Supabase
+type Media = FileObject;
 
 const IGNORED_NAMES = ['.emptyFolderPlaceholder']
 
@@ -21,7 +18,8 @@ export default function GalleryPage() {
     React.useEffect(() => {
         const getMedia = async () => {
             const mediaFromBucket = await getMediaFromBucket();
-            setMediaQuery(mediaFromBucket.data)
+            // Add null check to handle case when data might be null
+            setMediaQuery(mediaFromBucket.data || []);
             setIsLoading(false);
         }
 
@@ -40,6 +38,7 @@ export default function GalleryPage() {
                                 height={350}
                                 width={250}
                                 alt={`${media.name}`}
+                                key={media.id}
                             />
                         )
                     })
