@@ -1,0 +1,12 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "never"
+  },
+  "eslint.validate": ["javascript", "typescript", "typescriptreact"],
+  "eslint.rules.customizations": [
+    { "rule": "@typescript-eslint/no-explicit-any", "severity": "off" },
+    { "rule": "@typescript-eslint/no-unused-vars", "severity": "off" },
+    { "rule": "react/jsx-key", "severity": "off" },
+    { "rule": "react-hooks/exhaustive-deps", "severity": "off" }
+  ]
+} 
