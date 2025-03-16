@@ -12,25 +12,47 @@ import XLSX from 'xlsx';
 import { parseScholarData } from '../../lib/actions';
 import { useToast } from '@/app/hooks/use-toast';
 
-const formSchema = z.object({
-    fileUpload: z.instanceof(FileList)
-        .refine((list) => list.length > 0, "Select a file")
-        .refine((list) => list.length <= 1, "You can only select one file at a time")
-        .transform((list) => Array.from(list))
-        .refine((files) => {
-            return files.every((file) => ALLOWED_FILE_TYPES.includes(file.type))
-        },
-            { message: "Invalid file type. You can only upload .xslx and .csv." }
-        )
-});
+// Create a schema that works in both browser and server environments
+const getFormSchema = () => {
+    // Check if we're in a browser environment where FileList exists
+    const isBrowser = typeof window !== 'undefined' && typeof FileList !== 'undefined';
+    
+    if (isBrowser) {
+        return z.object({
+            fileUpload: z.instanceof(FileList)
+                .refine((list) => list.length > 0, "Select a file")
+                .refine((list) => list.length <= 1, "You can only select one file at a time")
+                .transform((list) => Array.from(list))
+                .refine((files) => {
+                    return files.every((file) => ALLOWED_FILE_TYPES.includes(file.type))
+                },
+                    { message: "Invalid file type. You can only upload .xslx and .csv." }
+                )
+        });
+    } else {
+        // Server-side or during static build: provide a dummy schema
+        return z.object({
+            fileUpload: z.any()
+        });
+    }
+};
 
 export default function ImportScholarForm() {
+    // Use state to store the schema
+    const [formSchema, setFormSchema] = React.useState<z.ZodType<any>>(z.object({ fileUpload: z.any() }));
     const [filesToUpload, setFilesToUpload] = React.useState<File[]>();
     const [formError, setFormError] = React.useState('');
     const { toast: errorToast } = useToast();
+    
+    // Initialize the form with a placeholder schema
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     });
+
+    // Update the schema once the component mounts in the browser
+    React.useEffect(() => {
+        setFormSchema(getFormSchema());
+    }, []);
 
     React.useEffect(() => {
         if(formError) {
@@ -65,10 +87,14 @@ export default function ImportScholarForm() {
     }
 
     const validateFile = (ev: any) => {
-        const files: FileList= ev.target.files;
+        // Check if we're in a browser environment
+        if (typeof window === 'undefined' || typeof FileList === 'undefined') return;
+        
+        const files: FileList = ev.target.files;
         if (!files) return;
 
-        const parsedFiles = formSchema.safeParse({ fileUpload: files });
+        const browserSchema = getFormSchema();
+        const parsedFiles = browserSchema.safeParse({ fileUpload: files });
         if (parsedFiles.success) {
             setFilesToUpload(parsedFiles.data.fileUpload);
         } else {
