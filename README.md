@@ -115,8 +115,42 @@ MIT License
 ## 👥 Contact
 
 Shannen Barrameda - sbarrameda17@gmail.com
+Alex Kim - akim04@outlook.com
 
 ---
+
+## 📋 Deployment
+
+### Deploying to Vercel
+
+1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
+
+2. Connect your repository to Vercel:
+   - Sign up or log in to [Vercel](https://vercel.com)
+   - Click "Add New..." → "Project"
+   - Import your Git repository
+   - Vercel will automatically detect your Next.js project
+
+3. Configure environment variables:
+   - Add all the environment variables listed in the Installation section
+   - Make sure to set your production database URLs and credentials
+
+4. Deploy:
+   - Click "Deploy"
+   - Vercel will build and deploy your application
+   - Once complete, you'll receive a deployment URL
+
+5. Custom Domain (optional):
+   - Go to your project settings
+   - Navigate to "Domains"
+   - Add and configure your custom domain
+
+### Troubleshooting Deployment
+
+If you encounter build errors during deployment:
+- Check that all environment variables are correctly set in the Vercel dashboard
+- Ensure your code passes the linting and type checking requirements
+- Review the build logs for specific errors
 
 ## 🔄 Development Status
 

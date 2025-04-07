@@ -63,12 +63,22 @@ export async function updateSession(request: NextRequest) {
     }
   }
   
+  // Add public paths that should be accessible without authentication
+  const publicPaths = [
+    '/',              // Home page
+    '/about',         // About page if you have one
+    '/contact',       // Contact page if you have one
+    '/favicon.ico',   // Favicon
+    '/manifest.json', // Web manifest if you have one
+  ];
+  
   const bypassPaths = [
     '/auth/v1/callback',
     '/login',
     '/auth',
     '/register',
-    '/error'
+    '/error',
+    '/loginError',
   ];
 
   const isAdmin = emailIsWhiteListedQuery ? emailIsWhiteListedQuery[0].isAdmin : false;
@@ -78,11 +88,30 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.rewrite('http://localhost:3000/loginError')
   }
 
+  // Check if this is a protected route
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/(protected)') || 
+                          request.nextUrl.pathname.startsWith('/settings') ||
+                          request.nextUrl.pathname.startsWith('/admin') ||
+                          request.nextUrl.pathname.startsWith('/scholars') ||
+                          request.nextUrl.pathname.startsWith('/gallery');
+  
+  // Allow access to public paths without authentication
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname === path) ||
+                      bypassPaths.some(path => request.nextUrl.pathname.startsWith(path)) ||
+                      request.nextUrl.pathname.indexOf('.svg') >= 0 ||
+                      request.nextUrl.pathname.indexOf('.js') >= 0 ||
+                      request.nextUrl.pathname.indexOf('.css') >= 0 ||
+                      request.nextUrl.pathname.indexOf('.json') >= 0 ||
+                      request.nextUrl.pathname.indexOf('.ico') >= 0 ||
+                      request.nextUrl.pathname.indexOf('.png') >= 0 ||
+                      request.nextUrl.pathname.indexOf('.jpg') >= 0 ||
+                      request.nextUrl.pathname.indexOf('_next') >= 0 ||
+                      code !== null;
+
   if (
     !user &&
-    !bypassPaths.some(path => request.nextUrl.pathname.startsWith(path)) &&
-    request.nextUrl.pathname.indexOf('.svg') < 0 &&
-    !code
+    isProtectedRoute &&
+    !isPublicPath
   ) {
     // no user, potentially respond by redirecting the user to the login page
     return redirectToLogin(request);
