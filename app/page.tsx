@@ -7,8 +7,13 @@ import { ArrowRight, GraduationCap, Users, Lightbulb, Globe } from 'lucide-react
 import Link from 'next/link';
 
 import './styles/globals.css';
+import { testimonials, stories } from './constants/testimonials';
+import { StoryCarousel } from './components/story-carousel';
 
 export default function Page() {
+  const onScholarButtonClick = (scholar: string) => {
+
+  }
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -116,43 +121,17 @@ export default function Page() {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <blockquote className="text-gray-700 italic mb-4">
-                  "The Banatao Scholarship allowed me to focus on my studies without the burden of financial stress. I'm now working at a leading tech company building the future of AI."
-                </blockquote>
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Maria Santos</p>
-                    <p className="text-gray-600 text-sm">Computer Science, Stanford '19</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <blockquote className="text-gray-700 italic mb-4">
-                  "Being part of the Banatao Scholars community connected me with mentors who guided me through my academic journey and helped launch my career in biotech."
-                </blockquote>
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
-                  <div>
-                    <p className="font-semibold text-gray-900">James Rodriguez</p>
-                    <p className="text-gray-600 text-sm">Bioengineering, UC Berkeley '20</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <blockquote className="text-gray-700 italic mb-4">
-                  "The scholarship not only supported me financially but also introduced me to a network of brilliant Filipino Americans in tech that I continue to collaborate with today."
-                </blockquote>
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Anna Reyes</p>
-                    <p className="text-gray-600 text-sm">Electrical Engineering, MIT '21</p>
-                  </div>
-                </div>
-              </div>
+              {testimonials.map((testimonial) => {
+                return renderScholarBlurb(testimonial)
+              })}
             </div>
+          </div>
+        </section>
+
+        {/** Scholar stories */}
+        <section className="py-20 text-black text-center">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <StoryCarousel stories={stories} autoplay/>
           </div>
         </section>
 
@@ -182,4 +161,22 @@ export default function Page() {
       <Footer />
     </div>
   );
+}
+
+function renderScholarBlurb(testimonial) {
+  const {name, short, tag} = testimonial;
+  return (
+    <div className="bg-gray-50 p-6 rounded-lg">
+    <blockquote className="text-gray-700 italic mb-4">
+      {short}
+    </blockquote>
+    <div className="flex items-center">
+      <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
+      <div>
+        <p className="font-semibold text-gray-900">{name}</p>
+        <p className="text-gray-600 text-sm">{tag}</p>
+      </div>
+    </div>
+  </div>
+  )
 }
