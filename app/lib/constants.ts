@@ -1,0 +1,1 @@
+export const DOMAIN = 'https://banatao-scholars.org';

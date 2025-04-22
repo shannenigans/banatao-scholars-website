@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { Scholar, scholarKeys } from '../types/scholar';
 import { PostgrestSingleResponse } from '@supabase/supabase-js';
+import { DOMAIN } from './constants';
 
 export async function parseScholarData(rawData: any[]) {
   const supabase = await createClient();
@@ -168,7 +169,7 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: 'http://localhost:3000/settings'
+        redirectTo: `${DOMAIN}/settings`
       },
     });
 
@@ -189,7 +190,7 @@ export async function signInWithLinkedIn() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "linkedin_oidc",
       options: {
-        redirectTo: 'http://localhost:3000/settings',
+        redirectTo: `${DOMAIN}/settings`
       },
     })
 

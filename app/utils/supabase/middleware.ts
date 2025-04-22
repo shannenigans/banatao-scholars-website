@@ -1,4 +1,5 @@
 import { isEmailWhitelisted } from '@/app/lib/actions';
+import { DOMAIN } from '@/app/lib/constants';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 import { redirect } from 'next/navigation';
@@ -45,7 +46,7 @@ export async function updateSession(request: NextRequest) {
       emailIsWhiteListedQuery = await isEmailWhitelisted(session.user.email)
       emailIsWhiteListed = emailIsWhiteListedQuery  ? emailIsWhiteListedQuery?.length === 1 : false;
       if (!emailIsWhiteListed) {
-        return NextResponse.rewrite('http://localhost:3000/loginError')
+        return NextResponse.rewrite(`${DOMAIN}/loginError`)
       }
     }
   }
@@ -59,7 +60,7 @@ export async function updateSession(request: NextRequest) {
     emailIsWhiteListedQuery = await isEmailWhitelisted(user.email)
     emailIsWhiteListed = emailIsWhiteListedQuery  ? emailIsWhiteListedQuery?.length === 1 : false;
     if (!emailIsWhiteListed) {
-      return NextResponse.rewrite('http://localhost:3000/loginError')
+      return NextResponse.rewrite(`${DOMAIN}/loginError`)
     }
   }
   
@@ -85,7 +86,7 @@ export async function updateSession(request: NextRequest) {
   const isValidAdminAccess = request.nextUrl.pathname.indexOf('/admin') >= 0 ? isAdmin : true;
 
   if (!isValidAdminAccess) {
-    return NextResponse.rewrite('http://localhost:3000/loginError')
+    return NextResponse.rewrite(`${DOMAIN}/loginError`)
   }
 
   // Check if this is a protected route

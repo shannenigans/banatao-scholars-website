@@ -154,7 +154,7 @@ If you encounter build errors during deployment:
 
 ## 🔄 Development Status
 
-Awaiting deployment to Vercel.
+Deployed at http://banatao-scholars.org
 
 ## 🐛 Known Issues
 
