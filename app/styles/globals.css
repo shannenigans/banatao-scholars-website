@@ -12,48 +12,117 @@
 
 @layer base {
   :root {
+    /* Banatao heritage palette: deep midnight navy + warm gold accent. */
     --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --foreground: 222 47% 11%;
+    --muted: 214 32% 95%;
+    --muted-foreground: 215 18% 40%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --popover-foreground: 222 47% 11%;
+    --border: 214 28% 88%;
+    --input: 214 28% 88%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-    --primary: 222.2 47.4% 11.2%;
+    --card-foreground: 222 47% 11%;
+    --primary: 222 64% 23%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 100% 50%;
+    --secondary: 214 32% 95%;
+    --secondary-foreground: 222 47% 16%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 26 75% 14%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 210 40% 98%;
-    --ring: 215 20.2% 65.1%;
-    --radius: 0.5rem;
+    --ring: 222 64% 23%;
+    --radius: 0.65rem;
+
+    /* Brand tokens (used by marketing components / utilities below). */
+    --brand-navy: 222 64% 18%;
+    --brand-navy-deep: 224 70% 12%;
+    --brand-gold: 38 92% 50%;
+    --brand-gold-soft: 42 96% 64%;
+    --brand-red: 354 70% 47%;
+
+    --sidebar-background: 224 70% 12%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 26 75% 14%;
+    --sidebar-accent: 222 50% 20%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 40% 22%;
+    --sidebar-ring: 38 92% 50%;
   }
 
   .dark {
-    --background: 224 71% 4%;
+    --background: 224 60% 6%;
     --foreground: 213 31% 91%;
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-    --accent: 216 34% 17%;
-    --accent-foreground: 210 40% 98%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 215 20.2% 65.1%;
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --card: 224 71% 4%;
+    --muted: 223 40% 14%;
+    --muted-foreground: 215 18% 60%;
+    --accent: 38 92% 52%;
+    --accent-foreground: 26 75% 12%;
+    --popover: 224 60% 6%;
+    --popover-foreground: 213 31% 91%;
+    --border: 222 33% 20%;
+    --input: 222 33% 20%;
+    --card: 224 52% 9%;
     --card-foreground: 213 31% 91%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 1.2%;
-    --secondary: 222.2 47.4% 11.2%;
+    --primary: 38 92% 52%;
+    --primary-foreground: 26 75% 12%;
+    --secondary: 222 40% 16%;
     --secondary-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
+    --destructive: 0 63% 41%;
     --destructive-foreground: 210 40% 98%;
-    --ring: 216 34% 17%;
+    --ring: 38 92% 52%;
+
+    --brand-navy: 222 64% 18%;
+    --brand-navy-deep: 224 70% 8%;
+    --brand-gold: 38 92% 52%;
+    --brand-gold-soft: 42 96% 64%;
+    --brand-red: 354 70% 52%;
+  }
+}
+
+@keyframes atom-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@layer utilities {
+  .animate-atom-spin {
+    animation: atom-spin 26s linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .animate-float {
+    animation: float-y 6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-atom-spin,
+    .animate-float {
+      animation: none;
+    }
+  }
+  /* Deep navy hero/section background with a subtle gold glow. */
+  .bg-brand-gradient {
+    background-color: hsl(var(--brand-navy-deep));
+    background-image:
+      radial-gradient(60% 60% at 75% 15%, hsl(var(--brand-gold) / 0.18), transparent 70%),
+      radial-gradient(55% 55% at 10% 90%, hsl(var(--brand-navy) / 0.9), transparent 70%);
+  }
+  .text-gold {
+    color: hsl(var(--brand-gold));
+  }
+  .bg-gold {
+    background-color: hsl(var(--brand-gold));
   }
 }
 
