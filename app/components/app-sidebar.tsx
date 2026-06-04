@@ -17,7 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/app/components/ui/sidebar"
-import { ChevronUp, Home, Settings, User2, BookOpenText, Shield, GalleryHorizontal } from "lucide-react"
+import { ChevronUp, Home, Settings, User2, BookOpenText, GalleryHorizontal, LayoutDashboard, FolderOpen, Calendar, Handshake, Briefcase, Newspaper } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
 import Link from 'next/link';
 import { useUser } from '../hooks/use-user';
@@ -25,14 +25,39 @@ import { isEmailWhitelisted } from '../lib/actions';
 
 const tabs = [
   {
-    title: "Home",
-    url: "/",
-    icon: Home,
+    title: "Portal",
+    url: "/portal",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Resources",
+    url: "/resources",
+    icon: FolderOpen,
   },
   {
     title: "Scholars",
     url: "/scholars",
     icon: BookOpenText,
+  },
+  {
+    title: "Mentorship",
+    url: "/mentorship",
+    icon: Handshake,
+  },
+  {
+    title: "Jobs",
+    url: "/jobs",
+    icon: Briefcase,
+  },
+  {
+    title: "News",
+    url: "/news",
+    icon: Newspaper,
+  },
+  {
+    title: "Events",
+    url: "/events",
+    icon: Calendar,
   },
   {
     title: "Gallery",
@@ -43,6 +68,11 @@ const tabs = [
     title: "Settings",
     url: "/settings",
     icon: Settings,
+  },
+  {
+    title: "Home",
+    url: "/",
+    icon: Home,
   }
 ];
 
