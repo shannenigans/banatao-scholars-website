@@ -1,8 +1,8 @@
 import React from 'react';
 
-export function useDebounce(callback: any, delay: number) {
+export function useDebounce<T>(callback: T, delay: number) {
     const [debouncedValue, setDebouncedValue] = React.useState(callback);
-    
+
     React.useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedValue(callback)

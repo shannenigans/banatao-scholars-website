@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import { getUser, getUserProfile } from "../lib/actions";
 import { User } from "@supabase/supabase-js";
@@ -11,7 +13,7 @@ export type UserContextProps = {
 const UserContext = React.createContext<UserContextProps>({ supabaseResponseUser: { user: null}, scholarProfile: undefined });
 type SupabaseResponseUserType = {user: User} | { user: null} | undefined;
 
-const UserProvider = ({ children }) => {
+const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = React.useState<SupabaseResponseUserType>({user: null});
     const [scholarProfile, setScholarProfile] = React.useState<Scholar | undefined>(undefined)
     React.useEffect(() => {
