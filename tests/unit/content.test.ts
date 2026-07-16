@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { STATIC_EVENTS } from '@/app/constants/events';
 import { STATIC_JOBS } from '@/app/constants/jobs';
 import { STATIC_NEWS } from '@/app/constants/news';
+import { STATIC_ALBUMS } from '@/app/constants/gallery';
 import { SCHOLARSHIP } from '@/app/constants/legacy';
 
 describe('published fallback content', () => {
@@ -11,8 +12,9 @@ describe('published fallback content', () => {
     expect(STATIC_EVENTS).toEqual([]);
   });
 
-  it('does not publish future-dated news', () => {
-    expect(STATIC_NEWS.every((post) => post.date <= '2026-07-15')).toBe(true);
+  it('does not publish invented announcements, opportunities, or albums', () => {
+    expect(STATIC_NEWS).toEqual([]);
+    expect(STATIC_ALBUMS).toEqual([]);
   });
 
   it('matches current eligible fields', () => {

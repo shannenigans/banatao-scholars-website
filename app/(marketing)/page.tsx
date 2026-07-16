@@ -26,10 +26,10 @@ export default async function LandingPage() {
 
   const scholarCount = visible.length;
   const stats: Stat[] = [
-    { value: scholarCount > 0 ? `${scholarCount}+` : 'Hundreds', label: 'Scholars supported' },
+    { value: scholarCount > 0 ? String(scholarCount) : 'Since 2002', label: 'Scholar community' },
     { value: `${new Date().getFullYear() - SCHOLARSHIP.establishedYear}+`, label: 'Years of impact' },
     { value: SCHOLARSHIP.awardMax, label: 'Awarded over four years' },
-    { value: '100%', label: 'Filipino American excellence' },
+    { value: '≥50%', label: 'Filipino heritage eligibility' },
   ];
 
   return (

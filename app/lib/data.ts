@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { cache } from 'react';
+
 import { createClient } from '@/app/utils/supabase/server';
 import type {
   PrivateScholarProfile,
@@ -53,10 +55,10 @@ export async function fetchScholarDirectory(
   if (error) return { data: publicResult.data, unavailable: true };
 
   const contacts = new Map<number, ScholarContact>(
-    (data ?? []).map((row) => [
+    (data ?? []).flatMap((row) => row.id === null ? [] : [[
       row.id,
       { email: optional(row.email), cellPhone: optional(row.cellPhone) },
-    ]),
+    ] as const]),
   );
   return {
     data: publicResult.data.map((scholar) => ({ ...scholar, ...contacts.get(scholar.id) })),
@@ -96,7 +98,7 @@ export async function fetchScholarContact(
   return { email: optional(data.email), cellPhone: optional(data.cellPhone) };
 }
 
-export async function fetchOwnProfile(
+export const fetchOwnProfile = cache(async function fetchOwnProfile(
   viewer: AuthenticatedViewer,
 ): Promise<PrivateScholarProfile | null> {
   const supabase = await createClient();
@@ -106,7 +108,7 @@ export async function fetchOwnProfile(
     .eq('email', viewer.user.email)
     .maybeSingle();
   return error || !data ? null : mapPrivateScholar(data);
-}
+});
 
 export async function fetchEvents(): Promise<DataResult<ScholarEvent[]>> {
   try {

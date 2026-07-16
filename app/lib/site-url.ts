@@ -26,8 +26,13 @@ export function resolveSiteUrl(env: NodeJS.ProcessEnv = process.env): string {
   return url.origin;
 }
 
-export function safeNextPath(value: string | null, fallback = '/portal'): string {
-  return value?.startsWith('/') && !value.startsWith('//') && !value.includes('\\')
+export function safeNextPath(value: FormDataEntryValue | null | undefined, fallback = '/portal'): string {
+  return typeof value === 'string' &&
+    value.startsWith('/') &&
+    !value.startsWith('//') &&
+    !value.includes('\\') &&
+    !/%(?:2f|5c)/i.test(value) &&
+    !/[\u0000-\u001f\u007f]/.test(value)
     ? value
     : fallback;
 }

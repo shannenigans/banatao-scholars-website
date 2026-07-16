@@ -5,9 +5,17 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   app:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,9 +31,12 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://example.org
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
 
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,7 +44,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx supabase start
+      - run: npx supabase start -x edge-runtime,gotrue,imgproxy,kong,logflare,mailpit,postgres-meta,postgrest,realtime,storage-api,studio,supavisor,vector
       - run: npm run db:test
+      - run: npm run db:types
+      - run: git diff --exit-code -- app/types/database.generated.ts
       - if: always()
         run: npx supabase stop --no-backup

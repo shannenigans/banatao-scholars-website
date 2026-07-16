@@ -47,8 +47,8 @@ export default function ApplyPage() {
                 and alumni.
               </p>
               <p>
-                Each year, {SCHOLARSHIP.finalists}. The fund was established in{' '}
-                {SCHOLARSHIP.establishedYear} by Dado and Maria Banatao, and is administered by{' '}
+                The fund was established in {SCHOLARSHIP.establishedYear} by Dado and Maria
+                Banatao, and is administered by{' '}
                 {SCHOLARSHIP.administeredBy} to support fields where Filipino Americans remain
                 underrepresented.
               </p>

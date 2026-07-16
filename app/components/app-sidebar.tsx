@@ -115,7 +115,7 @@ export function AppSidebar() {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <SignOut />
                 </DropdownMenuItem>
                 {viewer?.isAdmin && <DropdownMenuItem>

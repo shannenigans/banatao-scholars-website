@@ -7,21 +7,28 @@ import { Form } from 'app/form';
 
 import { SubmitButton } from '@/components/buttons/submit-button';
 import { signup } from '@/app/lib/actions';
+import { SIGNUP_NOTICE } from '@/app/lib/auth-messages';
 import { useToast } from '@/app/hooks/use-toast';
 
 export default function Login() {
   const [actionResult, formAction] = useActionState(signup, { errors: { formErrors: ''}});
-  const { toast: errorToast } = useToast();
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (actionResult.errors?.formErrors) {
-      errorToast({
-        title: 'Error',
+      toast({
+        title: 'Unable to sign up',
         variant: 'destructive',
         description: actionResult.errors.formErrors
       });
     }
-  }, [actionResult, errorToast])
+    if (actionResult.success) {
+      toast({
+        title: 'Check your email',
+        description: SIGNUP_NOTICE,
+      });
+    }
+  }, [actionResult, toast])
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
@@ -34,6 +41,11 @@ export default function Login() {
         </div>
         <Form action={formAction}>
           <SubmitButton>Sign Up</SubmitButton>
+          {actionResult.success && (
+            <p role="status" className="rounded-md border bg-white p-3 text-sm text-gray-700">
+              {SIGNUP_NOTICE}
+            </p>
+          )}
           <p className="text-center text-sm text-gray-600">
             {'Already have an account? '}
             <Link href="/login" className="font-semibold text-gray-800">

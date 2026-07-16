@@ -5,8 +5,13 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { requireAdmin, requireViewer } from '@/app/lib/auth';
-import { resolveSiteUrl } from '@/app/lib/site-url';
-import { createAdminClient, createClient } from '@/app/utils/supabase/server';
+import { resolveSiteUrl, safeNextPath } from '@/app/lib/site-url';
+import {
+  hasValidImageSignature,
+  profilePicturePathFromPublicUrl,
+  type ProfileImageMime,
+} from '@/app/lib/uploads';
+import { createAdminClient, createAnonymousClient, createClient } from '@/app/utils/supabase/server';
 import type { ScholarRow } from '@/app/types/database';
 import type { PrivateScholarProfile } from '@/app/types/scholar';
 
@@ -19,6 +24,8 @@ const credentialsSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
   password: z.string().min(8).max(128),
 });
+
+const PROFILE_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
 const optionalText = (max: number) =>
   z.preprocess((value) => (value === '' ? undefined : value), z.string().trim().max(max).optional());
@@ -51,6 +58,40 @@ const mentorshipSchema = z.object({
   bio: optionalText(1000),
 });
 
+const scholarImportSchema = z.object({
+  status: optionalText(50),
+  year: optionalText(20),
+  first: z.string().trim().min(1).max(100),
+  middle: optionalText(100),
+  last: z.string().trim().min(1).max(100),
+  school: optionalText(160),
+  major: optionalText(160),
+  email: z.string().trim().toLowerCase().email().max(254),
+  oldEmails: optionalText(1000),
+  cellPhone: optionalText(50),
+  schoolPhone: optionalText(50),
+  homePhone: optionalText(50),
+  schoolAddress: optionalText(240),
+  schoolAddress2: optionalText(240),
+  schoolCity: optionalText(100),
+  schoolState: optionalText(100),
+  schoolZip: optionalText(30),
+  homeAddress: optionalText(240),
+  homeCity: optionalText(100),
+  homeState: optionalText(100),
+  homeZip: optionalText(30),
+  parents: optionalText(300),
+  parentsContact: optionalText(300),
+  currentAddress: optionalText(240),
+  currentCity: optionalText(100),
+  currentState: optionalText(100),
+  currentZip: optionalText(30),
+  currentPhone: optionalText(50),
+  description: optionalText(500),
+  company: optionalText(160),
+  bio: optionalText(5000),
+});
+
 function formError(message: string): ActionState {
   return { errors: { formErrors: message } };
 }
@@ -68,7 +109,7 @@ export async function signInAsUser(_state: ActionState, formData: FormData): Pro
   }
 
   revalidatePath('/', 'layout');
-  redirect('/portal');
+  redirect(safeNextPath(formData.get('next')));
 }
 
 export async function signup(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -87,20 +128,22 @@ export async function signup(_state: ActionState, formData: FormData): Promise<A
   } catch {
     return formError('Sign-up is temporarily unavailable. Please try again later.');
   }
-  if (!allowed) {
-    return formError('This email is not on the scholar list. Please contact an administrator.');
-  }
+  // Return the same response for ineligible, existing, and newly-created
+  // accounts so this public action cannot be used to enumerate the allowlist.
+  if (!allowed) return { success: true };
 
   try {
-    const supabase = await createClient();
+    // Do not persist the signup response's session into browser cookies. This
+    // keeps the public response indistinguishable when email confirmation is
+    // disabled and requires every new account to sign in explicitly.
+    const supabase = createAnonymousClient();
     const { error } = await supabase.auth.signUp(parsed.data);
-    if (error) return formError('The account could not be created. Please try again.');
+    if (error) return { success: true };
   } catch {
     return formError('Sign-up is temporarily unavailable. Please try again later.');
   }
 
-  revalidatePath('/', 'layout');
-  redirect('/settings');
+  return { success: true };
 }
 
 export async function signOut() {
@@ -111,27 +154,34 @@ export async function signOut() {
   redirect('/login');
 }
 
-async function oauthUrl(provider: 'google' | 'linkedin_oidc') {
+export type OAuthResult = { url?: string; error?: string };
+
+async function oauthUrl(
+  provider: 'google' | 'linkedin_oidc',
+  requestedPath?: string,
+): Promise<OAuthResult> {
   try {
     const supabase = await createClient();
     const redirectTo = new URL('/auth/callback', resolveSiteUrl());
-    redirectTo.searchParams.set('next', '/portal');
+    redirectTo.searchParams.set('next', safeNextPath(requestedPath));
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: redirectTo.toString() },
     });
-    return error ? undefined : data.url;
+    return error || !data.url
+      ? { error: 'Single sign-on is temporarily unavailable.' }
+      : { url: data.url };
   } catch {
-    return undefined;
+    return { error: 'Single sign-on is temporarily unavailable.' };
   }
 }
 
-export async function signInWithGoogle() {
-  return oauthUrl('google');
+export async function signInWithGoogle(requestedPath?: string) {
+  return oauthUrl('google', requestedPath);
 }
 
-export async function signInWithLinkedIn() {
-  return oauthUrl('linkedin_oidc');
+export async function signInWithLinkedIn(requestedPath?: string) {
+  return oauthUrl('linkedin_oidc', requestedPath);
 }
 
 export async function saveProfile(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -143,15 +193,36 @@ export async function saveProfile(_state: ActionState, formData: FormData): Prom
   const profilePic = formData.get('profilePic');
   let imageUrl: string | undefined;
   let uploadedPath: string | undefined;
+  let previousImagePath: string | null = null;
   if (profilePic instanceof File && profilePic.size > 0) {
-    if (profilePic.size > 2_000_000 || !['image/jpeg', 'image/png', 'image/webp'].includes(profilePic.type)) {
+    if (
+      profilePic.size > 2_000_000 ||
+      !PROFILE_IMAGE_MIMES.includes(profilePic.type as ProfileImageMime)
+    ) {
       return formError('Profile photos must be JPEG, PNG, or WebP files no larger than 2 MB.');
     }
+    const mime = profilePic.type as ProfileImageMime;
+    const signature = new Uint8Array(await profilePic.slice(0, 12).arrayBuffer());
+    if (!hasValidImageSignature(signature, mime)) {
+      return formError('The selected file does not contain a valid JPEG, PNG, or WebP image.');
+    }
+
+    const { data: currentProfile } = await supabase
+      .from('scholars')
+      .select('imageUrl')
+      .eq('email', viewer.user.email)
+      .maybeSingle();
+    previousImagePath = profilePicturePathFromPublicUrl(
+      currentProfile?.imageUrl ?? null,
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+      viewer.user.id,
+    );
+
     const extension = profilePic.type === 'image/png' ? 'png' : profilePic.type === 'image/webp' ? 'webp' : 'jpg';
     const path = `${viewer.user.id}/${crypto.randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage
       .from('profile_pictures')
-      .upload(path, profilePic, { cacheControl: '3600', contentType: profilePic.type, upsert: true });
+      .upload(path, profilePic, { cacheControl: '3600', contentType: profilePic.type, upsert: false });
     if (uploadError) return formError('The profile photo could not be uploaded.');
     uploadedPath = path;
     imageUrl = supabase.storage.from('profile_pictures').getPublicUrl(path).data.publicUrl;
@@ -168,6 +239,9 @@ export async function saveProfile(_state: ActionState, formData: FormData): Prom
   if (error || !data) {
     if (uploadedPath) await supabase.storage.from('profile_pictures').remove([uploadedPath]);
     return formError('Your scholar profile could not be updated. Please contact an administrator.');
+  }
+  if (previousImagePath && previousImagePath !== uploadedPath) {
+    await supabase.storage.from('profile_pictures').remove([previousImagePath]);
   }
 
   revalidatePath('/settings');
@@ -186,7 +260,7 @@ export async function parseScholarData(rawData: unknown[]): Promise<ActionState>
     const value = row[index];
     return value === undefined || value === null || value === '' ? undefined : String(value).trim();
   };
-  const parsedRows: Partial<ScholarRow>[] = rows.map((row) => ({
+  const candidateRows = rows.map((row) => ({
     status: valueAt(row, 0), year: valueAt(row, 1), first: valueAt(row, 2),
     middle: valueAt(row, 3), last: valueAt(row, 4), school: valueAt(row, 5),
     major: valueAt(row, 6), email: valueAt(row, 7)?.toLowerCase(),
@@ -200,8 +274,21 @@ export async function parseScholarData(rawData: unknown[]): Promise<ActionState>
     description: valueAt(row, 28), company: valueAt(row, 29), bio: valueAt(row, 30),
   }));
 
-  if (parsedRows.some((row) => !row.first || !row.last || !row.email)) {
-    return formError('Every imported record must include a first name, last name, and email.');
+  if (candidateRows.length === 0) {
+    return formError('The import does not contain any scholar records.');
+  }
+
+  const parsedRows: Partial<ScholarRow>[] = [];
+  for (let index = 0; index < candidateRows.length; index += 1) {
+    const candidate = candidateRows[index];
+    const parsed = scholarImportSchema.safeParse(candidate);
+    if (!parsed.success) return formError(`Scholar row ${index + 2} contains invalid or oversized fields.`);
+    parsedRows.push(parsed.data);
+  }
+
+  const emails = parsedRows.map((row) => row.email as string);
+  if (new Set(emails).size !== emails.length) {
+    return formError('The import contains duplicate email addresses.');
   }
 
   const supabase = await createClient();

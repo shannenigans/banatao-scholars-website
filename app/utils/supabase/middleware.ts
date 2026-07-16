@@ -8,7 +8,9 @@ function redirectTo(request: NextRequest, pathname: string) {
   const url = request.nextUrl.clone();
   url.pathname = pathname;
   url.search = '';
-  if (pathname === '/login') url.searchParams.set('next', request.nextUrl.pathname);
+  if (pathname === '/login') {
+    url.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
+  }
   return NextResponse.redirect(url);
 }
 

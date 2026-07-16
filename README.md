@@ -38,7 +38,7 @@ cd banatao-scholars-website
 npm install
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
+3. Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
 # Supabase Configuration
@@ -58,6 +58,10 @@ npm run dev
 The service-role key is used only by the server-side sign-up action to verify
 the email allowlist. Never expose it through a `NEXT_PUBLIC_*` variable.
 
+In Supabase Auth, add each deployed origin's `/auth/callback` URL to the allowed
+redirect URLs. Set `NEXT_PUBLIC_SITE_URL` to the canonical production origin;
+preview deployments can fall back to Vercel's `VERCEL_URL`.
+
 ## Validation
 
 ```bash
@@ -66,18 +70,22 @@ npm run typecheck
 npm test
 npm run build
 npm run test:e2e
+npm run db:test
 ```
 
 Database migrations and policy tests live under `supabase/`. With Docker
-running, use `npx supabase start` followed by `npm run db:test`.
+running, use `npx supabase start` followed by `npm run db:test`. After changing
+a migration, run `npm run db:types` and commit the regenerated
+`app/types/database.generated.ts` file.
 
 ## 🔒 Protected Routes
 
 The application uses a protected routes system under the `(protected)` directory. Users must be authenticated to access these routes.
 
-### Middleware Authentication
+### Proxy Authentication
 
-The application implements route protection using Next.js middleware:
+The application implements route protection using the Next.js proxy plus
+server-side layout guards:
 
 - All routes under `app/(protected)/*` require authentication
 - Unauthenticated users are redirected to the login page
@@ -95,15 +103,43 @@ The system supports importing scholar data through Excel (.xlsx) and CSV files. 
 4. Error handling and user feedback
 
 ### Import File Format
-The Excel or CSV file should contain the following columns:
-- First Name
-- Last Name
-- Email
-- Graduation Year
-- Major
-- University
-- Current Job Title (optional)
-- Current Company (optional)
+The first row is treated as a header. Data rows must use this positional column
+order (optional fields may be blank):
+
+1. Status
+2. Graduation year
+3. First name
+4. Middle name
+5. Last name
+6. School
+7. Major
+8. Email
+9. Old emails
+10. Cell phone
+11. School phone
+12. Home phone
+13. School address
+14. School address line 2
+15. School city
+16. School state
+17. School ZIP
+18. Home address
+19. Home city
+20. Home state
+21. Home ZIP
+22. Parents
+23. Parents' contact information
+24. Current address
+25. Current city
+26. Current state
+27. Current ZIP
+28. Current phone
+29. Role or description
+30. Company
+31. Bio
+
+Imports are limited to 1,000 records, 31 columns, and 5 MB. The server validates
+every field and rejects duplicate or invalid email addresses before writing.
 
 ## 🤝 Contributing
 
@@ -158,7 +194,7 @@ If you encounter build errors during deployment:
 
 ## 🔄 Development Status
 
-Deployed at http://banatao-scholars.org
+Deployed at https://banatao-scholars.org
 
 ## 🐛 Known Issues
 

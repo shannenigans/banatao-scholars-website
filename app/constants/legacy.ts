@@ -2,8 +2,9 @@
  * Verified biographical content celebrating Dado Banatao and the scholarship.
  * Kept as data so the marketing/legacy pages stay easy to edit.
  *
- * Sources: Wikipedia (Dado Banatao), Asian Pacific Fund (asianpacificfund.org),
- * Positively Filipino, Asian Journal.
+ * Sources: the Banatao family obituary (banatao.com), the Asian Pacific Fund
+ * scholarship page, CITRIS and the Banatao Institute, and the Asian Institute
+ * of Management's Dado Banatao Incubator page.
  */
 
 export const FOUNDER = {
@@ -99,15 +100,13 @@ export const ACHIEVEMENTS: string[] = [
 /**
  * Facts about the scholarship itself, surfaced on the landing and apply pages.
  * Verified against the Asian Pacific Fund: $5,000 per year, renewable for up to
- * four years (up to $20,000 total), with about five scholars selected each year.
+ * four years (up to $20,000 total).
  */
 export const SCHOLARSHIP = {
   establishedYear: 2002,
   awardAnnual: '$5,000',
   awardMax: '$20,000',
   awardDetail: 'renewable for up to four years (up to $20,000 total)',
-  finalists: 'about 5 scholars are selected',
-  scholarsPerYear: '~5 scholars / year',
   administeredBy: 'the Asian Pacific Fund',
   heritage: 'at least 50% Filipino heritage',
   minGpa: '3.0',

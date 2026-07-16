@@ -29,6 +29,14 @@ export default function ImportScholarForm() {
       const workbook = XLSX.read(await file.arrayBuffer());
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       if (!firstSheet) return setMessage('The workbook does not contain a worksheet.');
+      if (firstSheet['!ref']) {
+        const range = XLSX.utils.decode_range(firstSheet['!ref']);
+        const rowCount = range.e.r - range.s.r + 1;
+        const columnCount = range.e.c - range.s.c + 1;
+        if (rowCount > 1001 || columnCount > 31) {
+          return setMessage('Imports are limited to one header, 1,000 records, and 31 columns.');
+        }
+      }
       const rows = XLSX.utils.sheet_to_json<unknown[]>(firstSheet, { header: 1 });
       const result = await parseScholarData(rows);
       setMessage(result.success ? 'Scholar records imported.' : result.errors?.formErrors ?? 'Import failed.');

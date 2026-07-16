@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:test": "supabase test db",
-    "db:types": "supabase gen types typescript --local > app/types/database.generated.ts"
+    "db:types": "supabase gen types typescript --local | sed '${/^$/d;}' > app/types/database.generated.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -56,5 +56,8 @@
     "tailwindcss": "^3.4.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

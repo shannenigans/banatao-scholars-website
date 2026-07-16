@@ -1,6 +1,6 @@
 import type { ScholarEvent } from '@/app/constants/events';
 import type { GalleryAlbum } from '@/app/constants/gallery';
-import type { JobPosting } from '@/app/constants/jobs';
+import { JOB_TYPES, type JobPosting, type JobType } from '@/app/constants/jobs';
 import type { NewsPost } from '@/app/constants/news';
 import { SCHOLAR_STATUS } from '@/app/lib/utils';
 import type {
@@ -17,9 +17,24 @@ function optional(value: string | null): string | undefined {
   return value ?? undefined;
 }
 
+function requiredNumber(value: number | null, field: string): number {
+  if (value === null) throw new Error(`Database view returned a null ${field}`);
+  return value;
+}
+
+function newsCategory(value: string): NewsPost['category'] {
+  if (value === 'news' || value === 'spotlight') return value;
+  throw new Error('Database returned an unsupported news category');
+}
+
+function jobType(value: string): JobType {
+  if ((JOB_TYPES as string[]).includes(value)) return value as JobType;
+  throw new Error('Database returned an unsupported job type');
+}
+
 export function mapPublicScholar(row: PublicScholarRow): PublicScholar {
   return {
-    id: row.id,
+    id: requiredNumber(row.id, 'scholar id'),
     status: row.status as SCHOLAR_STATUS,
     year: row.year ?? '',
     first: row.first ?? '',
@@ -52,7 +67,7 @@ export function mapNews(row: NewsRow): NewsPost {
   return {
     slug: row.slug, title: row.title, excerpt: row.excerpt, body: optional(row.body),
     date: row.published_at?.slice(0, 10) ?? '', author: optional(row.author),
-    coverImage: optional(row.cover_image), category: row.category,
+    coverImage: optional(row.cover_image), category: newsCategory(row.category),
     scholarId: row.scholar_id ?? undefined, featured: row.featured,
   };
 }
@@ -60,7 +75,7 @@ export function mapNews(row: NewsRow): NewsPost {
 export function mapJob(row: JobPostingRow): JobPosting {
   return {
     id: row.id, title: row.title, company: row.company, location: optional(row.location),
-    type: row.type, remote: row.remote, url: row.url, postedBy: optional(row.posted_by),
+    type: jobType(row.type), remote: row.remote, url: row.url, postedBy: optional(row.posted_by),
     postedAt: row.posted_at.slice(0, 10), description: optional(row.description),
     expiresAt: row.expires_at?.slice(0, 10),
   };

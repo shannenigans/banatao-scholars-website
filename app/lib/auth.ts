@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { redirect } from 'next/navigation';
+import { cache } from 'react';
 import type { User } from '@supabase/supabase-js';
 
 import { createClient } from '@/app/utils/supabase/server';
@@ -10,7 +11,7 @@ export type AuthenticatedViewer = {
   isAdmin: boolean;
 };
 
-export async function getOptionalViewer(): Promise<AuthenticatedViewer | null> {
+export const getOptionalViewer = cache(async (): Promise<AuthenticatedViewer | null> => {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
@@ -31,7 +32,7 @@ export async function getOptionalViewer(): Promise<AuthenticatedViewer | null> {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireViewer(): Promise<AuthenticatedViewer> {
   const viewer = await getOptionalViewer();

@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
@@ -40,5 +42,18 @@ export function createAdminClient() {
   if (!url || !serviceRoleKey) throw new Error('Supabase admin environment variables are not configured.');
   return createSupabaseClient<Database>(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+export function createAnonymousClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) throw new Error('Supabase environment variables are not configured.');
+  return createSupabaseClient<Database>(url, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: false,
+    },
   });
 }
