@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import {
   DropdownMenu,
@@ -21,7 +23,6 @@ import { ChevronUp, Home, Settings, User2, BookOpenText, GalleryHorizontal, Layo
 import { SignOut } from "./buttons/sign-out";
 import Link from 'next/link';
 import { useUser } from '../hooks/use-user';
-import { isEmailWhitelisted } from '../lib/actions';
 
 const tabs = [
   {
@@ -77,21 +78,7 @@ const tabs = [
 ];
 
 export function AppSidebar() {
-  const userContext = useUser();
-  const { supabaseResponseUser } = userContext;
-  const user = supabaseResponseUser?.user;
-  const [isUserAdmin, setIsUserAdmin] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkIsAdmin = async () => {
-      if (user?.email) {
-        const whitelistQuery = await isEmailWhitelisted(user?.email);
-        setIsUserAdmin(whitelistQuery ? whitelistQuery[0].isAdmin : false);
-      }
-    }
-
-    checkIsAdmin();
-  }, [user]);
+  const { viewer } = useUser();
 
   return (
     <Sidebar>
@@ -120,7 +107,7 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2 /> {user?.email ? user?.email : ''}
+                  <User2 /> {viewer?.user.email ?? ''}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -131,7 +118,7 @@ export function AppSidebar() {
                 <DropdownMenuItem>
                   <SignOut />
                 </DropdownMenuItem>
-                {isUserAdmin && <DropdownMenuItem>
+                {viewer?.isAdmin && <DropdownMenuItem>
                   <Link href={'/admin'}>Admin</Link>
                 </DropdownMenuItem>}
               </DropdownMenuContent>

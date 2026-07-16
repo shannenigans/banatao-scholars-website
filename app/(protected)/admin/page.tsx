@@ -1,8 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import ImportScholarForm from "./importScholarForm";
+import { requireAdmin } from '@/app/lib/auth';
 
-export default function AdminPage() {
+export default async function AdminPage() {
+    await requireAdmin();
     return (
         <div className="container p-6 mx-auto">
         <Card> 

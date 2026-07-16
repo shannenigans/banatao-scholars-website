@@ -1,4 +1,8 @@
 const nextConfig = {
+  allowedDevOrigins: ['127.0.0.1'],
+  turbopack: {
+    root: __dirname,
+  },
   images: {
     remotePatterns: [
       {
@@ -14,18 +18,6 @@ const nextConfig = {
         pathname: "**",
       },
     ],
-  },
-  // Disable ESLint during builds
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
-  // Disable TypeScript type checking during builds
-  typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has TypeScript errors.
-    ignoreBuildErrors: true,
   },
 };
 

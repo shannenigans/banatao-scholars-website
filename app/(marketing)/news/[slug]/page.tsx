@@ -5,17 +5,18 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ArrowLeft, Calendar, ArrowRight } from 'lucide-react';
 
-import { fetchNewsBySlug, fetchScholarById } from '@/app/lib/actions';
+import { fetchNewsBySlug, fetchPublicScholarById } from '@/app/lib/data';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { ScholarCard } from '@/app/components/marketing/scholar-card';
-import { Scholar } from '@/app/types/scholar';
+import type { PublicScholar } from '@/app/types/scholar';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const post = await fetchNewsBySlug(params.slug);
   if (!post) return { title: 'Post not found' };
   return { title: post.title, description: post.excerpt };
@@ -29,17 +30,18 @@ function formatDate(date: string) {
   });
 }
 
-export default async function NewsDetailPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function NewsDetailPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   const post = await fetchNewsBySlug(params.slug);
   if (!post) notFound();
 
-  let scholar: Scholar | null = null;
+  let scholar: PublicScholar | null = null;
   if (post.scholarId) {
-    scholar = (await fetchScholarById(post.scholarId)) as Scholar | null;
+    scholar = await fetchPublicScholarById(post.scholarId);
   }
 
   const paragraphs = (post.body ?? post.excerpt).split(/\n\s*\n/).map((p) => p.trim());

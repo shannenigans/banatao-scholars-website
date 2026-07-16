@@ -11,10 +11,6 @@ export const SITE = {
     'The community and alumni network of the Banatao Family Filipino American Education Fund — celebrating the legacy of Dado Banatao and the scholars carrying it forward.',
 };
 
-/** Public base URL. Prefer the env var in production; falls back to the request origin in middleware. */
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
-
 export const EXTERNAL_LINKS = {
   whatsapp: 'https://chat.whatsapp.com/D94syzs9UogIQ65GiYGqI2',
   googleDrive: 'https://drive.google.com/drive/folders/1S5fopPv0wFFyYGoe3d_YULrpccT7mFYJ',

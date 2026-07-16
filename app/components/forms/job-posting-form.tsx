@@ -1,12 +1,11 @@
 'use client';
 
 import React from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { CheckCircle2, Plus, X } from 'lucide-react';
 
 import { submitJobPosting } from '@/app/lib/actions';
 import { JOB_TYPES } from '@/app/constants/jobs';
-import { useUser } from '@/app/hooks/use-user';
 import { useToast } from '@/app/hooks/use-toast';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
@@ -16,9 +15,7 @@ import { SubmitButton } from '@/app/components/buttons/submit-button';
 type State = { errors?: { formErrors?: string }; success?: boolean };
 
 export function JobPostingForm() {
-  const { scholarProfile } = useUser();
-  const defaultName = scholarProfile ? `${scholarProfile.first} ${scholarProfile.last}` : '';
-  const [state, formAction] = useFormState<State, FormData>(submitJobPosting, {});
+  const [state, formAction] = useActionState<State, FormData>(submitJobPosting, {});
   const { toast } = useToast();
   const [open, setOpen] = React.useState(false);
 
@@ -28,7 +25,6 @@ export function JobPostingForm() {
     }
     if (state?.success) {
       toast({ title: 'Posted!', description: 'Thanks for sharing a role with the network.' });
-      setOpen(false);
     }
   }, [state, toast]);
 
@@ -121,7 +117,6 @@ export function JobPostingForm() {
             className="mt-2"
           />
         </div>
-        <input type="hidden" name="postedBy" value={defaultName} />
       </div>
 
       <div className="mt-5">

@@ -38,15 +38,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${fontSans.variable} ${fontDisplay.variable}`}>
-      <head>
-        <script src="https://accounts.google.com/gsi/client" async></script>
-      </head>
-      <UserProvider>
-        <body className="font-sans">
+      <body className="font-sans">
+        <UserProvider>
           <Toaster />
           {children}
-        </body>
-      </UserProvider>
+        </UserProvider>
+      </body>
     </html>
   );
 }

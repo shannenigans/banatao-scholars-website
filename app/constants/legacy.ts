@@ -14,7 +14,7 @@ export const FOUNDER = {
   lifespan: '1946 – 2025',
   age: 79,
   summary:
-    'The son of a rice farmer, Dado Banatao rose from a small town in the Philippines to become one of Silicon Valley’s most influential engineers and investors. His chips are in nearly every personal computer ever made — and his generosity opened the door to higher education for hundreds of Filipino American students.',
+    'The son of a rice farmer, Dado Banatao rose from a small town in the Philippines to become an influential Silicon Valley engineer and investor. With his wife Maria, he established a scholarship supporting California students of Filipino heritage.',
 };
 
 export type TimelineEntry = {
@@ -28,7 +28,7 @@ export const TIMELINE: TimelineEntry[] = [
     year: '1946',
     title: 'Born in Iguig, Cagayan',
     description:
-      'Born May 23 to Salvador, a rice farmer, and Rosita, a housekeeper. As a boy he walked barefoot along a dirt road to reach Malabbac Elementary School.',
+      'Born May 23 to Salvador, a rice farmer, and Rosita, a housekeeper. As a boy he walked barefoot along a dirt road to reach Malabac Elementary School.',
   },
   {
     year: '1960s',
@@ -40,7 +40,7 @@ export const TIMELINE: TimelineEntry[] = [
     year: '1972',
     title: 'MSEE, Stanford University',
     description:
-      'Completed a master’s in Electrical Engineering & Computer Science at Stanford while working as a design engineer — and joined the Homebrew Computer Club, where he crossed paths with Steve Jobs and Steve Wozniak.',
+      'Completed a master’s in Electrical Engineering & Computer Science at Stanford while building his career as a design engineer.',
   },
   {
     year: '1980s',
@@ -52,7 +52,7 @@ export const TIMELINE: TimelineEntry[] = [
     year: '1985',
     title: 'Co-founds Chips & Technologies',
     description:
-      'His chipset company brought PC-compatible system logic to the masses and was later acquired by Intel for roughly $300 million.',
+      'His chipset company helped bring PC-compatible system logic to a growing personal-computer market and was later acquired by Intel.',
   },
   {
     year: '1989',
@@ -64,7 +64,7 @@ export const TIMELINE: TimelineEntry[] = [
     year: '2000',
     title: 'Founds Tallwood Venture Capital',
     description:
-      'Launched his own venture firm with roughly $300 million of his own money to back the next wave of semiconductor and systems startups.',
+      'Launched a venture firm focused on semiconductor and systems startups.',
   },
   {
     year: '2002',
@@ -82,7 +82,7 @@ export const TIMELINE: TimelineEntry[] = [
     year: 'Dec 25, 2025',
     title: 'In loving memory',
     description:
-      'Dado passed away at 79, surrounded by family, from complications of a neurological disorder. He is survived by his wife Maria, their children, and grandchildren — and by the hundreds of scholars he helped send into STEM.',
+      'Dado passed away at 79. His legacy continues through his family, his engineering work, and the educational programs he supported.',
   },
 ];
 
@@ -92,26 +92,8 @@ export const ACHIEVEMENTS: string[] = [
   'One of the first GUI / graphics accelerators for the PC',
   'Three-time startup founder: Mostron, Chips & Technologies, S3 Graphics',
   'Founder of Tallwood Venture Capital',
-  'Member of the Homebrew Computer Club alongside Steve Jobs & Steve Wozniak',
   'Namesake of the CITRIS Banatao Institute across the University of California',
   'Co-founder of PhilDev and backer of the AIM–Dado Banatao Incubator',
-];
-
-export type Quote = { text: string; attribution: string };
-
-export const QUOTES: Quote[] = [
-  {
-    text: 'I know how education can transform lives, because it transformed mine.',
-    attribution: 'Dado Banatao',
-  },
-  {
-    text: 'Having grown up in a rural area of the Philippines, my background has made me passionate about education.',
-    attribution: 'Dado Banatao',
-  },
-  {
-    text: 'Maria and I hope this will inspire students to dream big and to make the sacrifices needed to continue their education so they can fully contribute to society and make their dreams a reality.',
-    attribution: 'Dado & Maria Banatao',
-  },
 ];
 
 /**
@@ -130,7 +112,7 @@ export const SCHOLARSHIP = {
   heritage: 'at least 50% Filipino heritage',
   minGpa: '3.0',
   fields:
-    'engineering, mathematics, computer science, or a physical or biological science',
+    'engineering, mathematics, computer science, environmental science, or a physical science',
   mission:
     'Supporting California students of Filipino heritage who excel in math and science as they pursue rewarding STEM careers — fields where Filipino Americans remain underrepresented.',
 };

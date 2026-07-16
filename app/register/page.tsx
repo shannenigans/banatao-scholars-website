@@ -1,6 +1,6 @@
 'use client'
 import React from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 
 import Link from 'next/link';
 import { Form } from 'app/form';
@@ -10,18 +10,18 @@ import { signup } from '@/app/lib/actions';
 import { useToast } from '@/app/hooks/use-toast';
 
 export default function Login() {
-  const [actionResult, formAction] = useFormState(signup, { errors: { formErrors: ''}});
+  const [actionResult, formAction] = useActionState(signup, { errors: { formErrors: ''}});
   const { toast: errorToast } = useToast();
 
   React.useEffect(() => {
-    if (actionResult.errors.formErrors !== '') {
+    if (actionResult.errors?.formErrors) {
       errorToast({
         title: 'Error',
         variant: 'destructive',
         description: actionResult.errors.formErrors
       });
     }
-  }, [actionResult])
+  }, [actionResult, errorToast])
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">

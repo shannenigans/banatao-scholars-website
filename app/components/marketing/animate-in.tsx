@@ -10,7 +10,7 @@ type AnimateInProps = {
   delay?: number;
   /** Direction the element eases in from. */
   from?: 'up' | 'down' | 'left' | 'right' | 'none';
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 };
 
 const HIDDEN: Record<NonNullable<AnimateInProps['from']>, string> = {
@@ -44,8 +44,8 @@ export function AnimateIn({
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     ) {
-      setVisible(true);
-      return;
+      const timer = window.setTimeout(() => setVisible(true), 0);
+      return () => window.clearTimeout(timer);
     }
 
     const observer = new IntersectionObserver(

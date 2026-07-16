@@ -79,9 +79,8 @@ const LINKS: QuickLink[] = [
 ];
 
 export default function PortalPage() {
-  const { supabaseResponseUser, scholarProfile } = useUser();
-  const user = supabaseResponseUser?.user;
-  const greetingName = scholarProfile?.first || user?.email?.split('@')[0] || 'Scholar';
+  const { viewer, scholarProfile } = useUser();
+  const greetingName = scholarProfile?.first || viewer?.user.email.split('@')[0] || 'Scholar';
 
   return (
     <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">

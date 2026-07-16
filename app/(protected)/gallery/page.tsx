@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { fetchAlbums } from '@/app/lib/actions';
+import { fetchAlbums } from '@/app/lib/data';
 import { AlbumCard } from '@/app/components/marketing/album-card';
 
 export default async function GalleryPage() {
-  const albums = await fetchAlbums();
+  const { data: albums, unavailable } = await fetchAlbums();
 
   return (
     <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
@@ -23,7 +23,7 @@ export default async function GalleryPage() {
         </div>
       ) : (
         <p className="mt-12 rounded-xl border bg-muted/40 p-6 text-center text-muted-foreground">
-          No albums yet — check back after the next gathering.
+          {unavailable ? 'The gallery is temporarily unavailable.' : 'No albums have been published yet.'}
         </p>
       )}
     </div>

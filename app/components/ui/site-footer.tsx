@@ -15,7 +15,7 @@ export function SiteFooter() {
         <div className="md:col-span-2">
           <div className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-navy">
-              <AtomLogo className="h-6 w-6 text-gold" />
+              <AtomLogo className="h-6 w-6" />
             </span>
             <span className="font-display text-lg font-semibold">{SITE.name}</span>
           </div>

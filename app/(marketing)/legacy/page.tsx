@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
-import { ArrowRight, Quote as QuoteIcon } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { AtomGraphic } from '@/app/components/ui/atom-logo';
@@ -12,7 +13,6 @@ import {
   FOUNDER,
   TIMELINE,
   ACHIEVEMENTS,
-  QUOTES,
 } from '@/app/constants/legacy';
 
 export const metadata: Metadata = {
@@ -28,6 +28,14 @@ export default function LegacyPage() {
       <section className="relative overflow-hidden bg-brand-gradient text-white">
         <AtomGraphic className="pointer-events-none absolute -right-20 top-1/2 h-96 w-96 -translate-y-1/2 opacity-15" />
         <div className="container relative mx-auto px-4 py-24 text-center sm:px-6 lg:px-8 duration-1000 animate-in fade-in slide-in-from-bottom-6">
+          <Image
+            src="/dado-headshot.webp"
+            alt="Dado Banatao"
+            width={176}
+            height={176}
+            priority
+            className="mx-auto mb-8 h-44 w-44 rounded-full border-4 border-gold object-cover shadow-xl"
+          />
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">
             In Memoriam
           </p>
@@ -41,17 +49,18 @@ export default function LegacyPage() {
 
       {/* Bio */}
       <section className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <SectionHeading
-            align="left"
-            eyebrow="His story"
-            title="From a rice farm to Silicon Valley"
-          />
-          <div className="mt-6 space-y-5 text-lg text-muted-foreground">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-12">
+          <div className="lg:col-span-2">
+            <SectionHeading
+              align="left"
+              eyebrow="His story"
+              title="From a rice farm to Silicon Valley"
+            />
+            <div className="mt-6 space-y-5 text-lg text-muted-foreground">
             <p>
               Born on {FOUNDER.born} in {FOUNDER.birthplace}, Dado Banatao was the son of
               Salvador, a rice farmer, and Rosita, a housekeeper. As a boy he walked barefoot
-              along a dirt road to reach Malabbac Elementary School. Education was his way
+              along a dirt road to reach Malabac Elementary School. Education was his way
               forward: after the Jesuit-run Ateneo de Tuguegarao, he earned his degree in
               Electrical Engineering, <em>cum laude</em>, from the Mapúa Institute of Technology,
               then emigrated to the United States and completed a master&apos;s in Electrical
@@ -61,11 +70,8 @@ export default function LegacyPage() {
               In Silicon Valley, Dado became one of the most consequential engineers of the
               personal-computer era. He developed the first 10-Mbit Ethernet CMOS chip, the
               first system-logic chipset compatible with the IBM PC/XT and PC/AT, and one of
-              the first graphics accelerators for the PC. An early member of the legendary
-              Homebrew Computer Club — alongside Steve Jobs and Steve Wozniak — and a three-time
-              founder of Mostron, Chips &amp; Technologies, and S3 Graphics, he later launched
-              Tallwood Venture Capital with roughly $300 million of his own money. His work
-              touched nearly every computer on Earth.
+              the first graphics accelerators for the PC. He founded Mostron, Chips &amp;
+              Technologies, and S3 Graphics, and later launched Tallwood Venture Capital.
             </p>
             <p>
               But Dado never forgot where he came from. With his wife Maria, he established the
@@ -76,6 +82,16 @@ export default function LegacyPage() {
               innovators. He passed away on {FOUNDER.died}, at {FOUNDER.age}, surrounded by
               family.
             </p>
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <Image
+              src="/dado-headshot.webp"
+              alt="Dado Banatao"
+              width={400}
+              height={400}
+              className="sticky top-24 w-full rounded-2xl border bg-card object-cover shadow-md"
+            />
           </div>
         </div>
       </section>
@@ -102,28 +118,6 @@ export default function LegacyPage() {
         <SectionHeading eyebrow="A life in milestones" title="The journey" />
         <div className="mx-auto mt-12 max-w-2xl">
           <Timeline entries={TIMELINE} />
-        </div>
-      </section>
-
-      {/* Quotes */}
-      <section className="border-t bg-muted/40">
-        <div className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="In his words" title="On education" />
-          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
-            {QUOTES.map((q, i) => (
-              <AnimateIn key={q.text} delay={i * 120}>
-                <figure className="h-full rounded-2xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                  <QuoteIcon className="h-8 w-8 text-gold" />
-                  <blockquote className="mt-4 font-display text-lg italic">
-                    “{q.text}”
-                  </blockquote>
-                  <figcaption className="mt-4 text-sm font-semibold text-muted-foreground">
-                    — {q.attribution}
-                  </figcaption>
-                </figure>
-              </AnimateIn>
-            ))}
-          </div>
         </div>
       </section>
 

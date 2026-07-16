@@ -1,5 +1,6 @@
 import { Button } from "@/app/components/ui/button"
 import { signInWithLinkedIn } from "@/app/lib/actions"
+import Image from 'next/image';
 
 export const LinkedInSigninButton = () => {
     const handleSignIn = async () => {
@@ -11,7 +12,7 @@ export const LinkedInSigninButton = () => {
     
     return (
         <Button id='linkedin-sign-in' size="lg" variant="outline" onClick={handleSignIn}>
-            <img src="/linkedin_icon.svg" height={30} width={30}/>
+            <Image src="/linkedin_icon.svg" height={30} width={30} alt="Sign in with LinkedIn" />
         </Button>
     )
 }

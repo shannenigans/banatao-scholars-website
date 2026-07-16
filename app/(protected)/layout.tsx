@@ -1,23 +1,26 @@
-'use client';
 import { AppSidebar } from '@/app/components/app-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/app/components/ui/sidebar';
-import { Footer } from '@/components/ui/footer';
+import { Footer } from '@/app/components/ui/footer';
+import UserProvider from '@/app/hooks/use-user';
+import { requireViewer } from '@/app/lib/auth';
+import { fetchOwnProfile } from '@/app/lib/data';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const viewer = await requireViewer();
+  const profile = await fetchOwnProfile(viewer);
+
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar />
-      <div className='flex flex-col w-full justify-between'>
-      <main className="w-full h-full">
-        <SidebarTrigger />
-        {children}
-      </main>
-      <Footer />
-      </div>
-    </SidebarProvider>
+    <UserProvider viewer={viewer} scholarProfile={profile}>
+      <SidebarProvider defaultOpen={false}>
+        <AppSidebar />
+        <div className="flex w-full flex-col justify-between">
+          <main className="h-full w-full">
+            <SidebarTrigger />
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </SidebarProvider>
+    </UserProvider>
   );
 }

@@ -1,15 +1,13 @@
 'use client';
 
 import React from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
 
 import { submitMentorshipSignup } from '@/app/lib/actions';
 import { MENTORSHIP_AREAS } from '@/app/constants/mentorship';
 import { EXTERNAL_LINKS } from '@/app/constants/site';
-import { useUser } from '@/app/hooks/use-user';
 import { useToast } from '@/app/hooks/use-toast';
-import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Button } from '@/app/components/ui/button';
 import { SubmitButton } from '@/app/components/buttons/submit-button';
@@ -18,9 +16,7 @@ import { cn } from '@/app/lib/utils';
 type State = { errors?: { formErrors?: string }; success?: boolean };
 
 export function MentorshipForm() {
-  const { supabaseResponseUser, scholarProfile } = useUser();
-  const defaultEmail = scholarProfile?.email || supabaseResponseUser?.user?.email || '';
-  const [state, formAction] = useFormState<State, FormData>(submitMentorshipSignup, {});
+  const [state, formAction] = useActionState<State, FormData>(submitMentorshipSignup, {});
   const { toast } = useToast();
   const [role, setRole] = React.useState<'mentor' | 'mentee'>('mentee');
 
@@ -78,22 +74,6 @@ export function MentorshipForm() {
           ))}
         </div>
       </fieldset>
-
-      {/* Email */}
-      <div className="mt-6">
-        <label htmlFor="mentorship-email" className="text-sm font-medium">
-          Email
-        </label>
-        <Input
-          id="mentorship-email"
-          name="email"
-          type="email"
-          required
-          defaultValue={defaultEmail}
-          placeholder="you@example.com"
-          className="mt-2"
-        />
-      </div>
 
       {/* Areas */}
       <fieldset className="mt-6">

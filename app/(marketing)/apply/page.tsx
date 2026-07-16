@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 
 const ELIGIBILITY = [
   'At least 50% Filipino heritage',
-  'U.S. citizen or permanent resident, and a California resident in an eligible county',
-  'Graduating high school senior entering an accredited 4-year U.S. college or university',
+  'California resident',
+  'Incoming freshman who plans to enroll full-time at an accredited four-year college or university for the 2026–27 academic year',
   'Minimum GPA of 3.0',
-  'Pursuing a STEM major — engineering, math, computer science, or a physical or biological science (excluding healthcare)',
+  'Pursuing engineering, mathematics, computer science, environmental science, or a physical science',
 ];
 
 export default function ApplyPage() {
@@ -66,8 +66,8 @@ export default function ApplyPage() {
               ))}
             </ul>
             <p className="mt-6 text-sm text-muted-foreground">
-              Eligibility criteria are set by the Asian Pacific Fund and may change year to year.
-              Always confirm details on the official scholarship page.
+              The 2026 application cycle is closed. The Asian Pacific Fund says applications
+              will reopen in 2027. Criteria may change, so always confirm them on the official page.
             </p>
             <Button asChild size="lg" className="mt-6 w-full">
               <a
@@ -75,7 +75,7 @@ export default function ApplyPage() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Apply via the Asian Pacific Fund <ExternalLink className="h-4 w-4" />
+                View the official scholarship page <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
           </div>

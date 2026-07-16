@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Calendar, MapPin, Lock, ExternalLink, ArrowRight } from 'lucide-react';
 
-import { fetchEvents } from '@/app/lib/actions';
+import { fetchEvents } from '@/app/lib/data';
 import { ScholarEvent } from '@/app/constants/events';
 import { SectionHeading } from '@/app/components/marketing/section-heading';
 import { AnimateIn } from '@/app/components/marketing/animate-in';
@@ -78,7 +78,7 @@ function EventCard({ event }: { event: ScholarEvent }) {
 }
 
 export default async function EventsPage() {
-  const events = await fetchEvents();
+  const { data: events, unavailable } = await fetchEvents();
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
@@ -108,7 +108,9 @@ export default async function EventsPage() {
           </div>
         ) : (
           <p className="rounded-xl border bg-muted/40 p-6 text-center text-muted-foreground">
-            No upcoming events right now — check back soon for new gatherings.
+            {unavailable
+              ? 'Events are temporarily unavailable.'
+              : 'No upcoming events right now — check back soon for new gatherings.'}
           </p>
         )}
 

@@ -6,15 +6,10 @@ import { Tab } from "@/app/types/tab";
 import { useUser } from "@/app/hooks/use-user";
 
 export function Header() {
-  const [linkTabs, setLinkTabs] = React.useState<Tab[]>([TABS.Home, TABS.SignIn]);
-  const userContext = useUser();
-  const { supabaseResponseUser } = userContext;
-
-  React.useEffect(() => {
-    if (supabaseResponseUser?.user) {
-      setLinkTabs([TABS.Home, TABS.Scholars, TABS.Gallery, TABS.Settings]);
-    }
-  }, [supabaseResponseUser])
+  const { viewer } = useUser();
+  const linkTabs: Tab[] = viewer
+    ? [TABS.Home, TABS.Scholars, TABS.Gallery, TABS.Settings]
+    : [TABS.Home, TABS.SignIn];
 
   return (
     <header className="border-b">
@@ -29,7 +24,7 @@ export function Header() {
             <ul className="flex space-x-4">
               {linkTabs.map((tab) => {
                 return (
-                  <li>
+                  <li key={tab.url}>
                   <Link
                     href={tab.url}
                     className="text-sm font-medium hover:text-primary"

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   GraduationCap,
@@ -15,22 +16,12 @@ import { SectionHeading } from '@/app/components/marketing/section-heading';
 import { StatGrid, Stat } from '@/app/components/marketing/stat-counter';
 import { ScholarCard } from '@/app/components/marketing/scholar-card';
 import { AnimateIn } from '@/app/components/marketing/animate-in';
-import { fetchScholars } from '@/app/lib/actions';
-import { Scholar } from '@/app/types/scholar';
-import { SCHOLAR_STATUS } from '@/app/lib/utils';
-import { FOUNDER, QUOTES, SCHOLARSHIP } from '@/app/constants/legacy';
+import { fetchPublicScholars } from '@/app/lib/data';
+import type { PublicScholar } from '@/app/types/scholar';
+import { FOUNDER, SCHOLARSHIP } from '@/app/constants/legacy';
 
 export default async function LandingPage() {
-  let scholars: Scholar[] = [];
-  try {
-    scholars = ((await fetchScholars()) as Scholar[]) ?? [];
-  } catch {
-    scholars = [];
-  }
-
-  const visible = scholars.filter(
-    (s) => s.status === SCHOLAR_STATUS.ACTIVE || s.status === SCHOLAR_STATUS.GRADUATED,
-  );
+  const { data: visible } = await fetchPublicScholars();
   const featured = visible.filter((s) => s.bio || s.company).slice(0, 3);
 
   const scholarCount = visible.length;
@@ -146,9 +137,6 @@ export default async function LandingPage() {
             </h2>
             <p className="mt-2 text-muted-foreground">{FOUNDER.lifespan}</p>
             <p className="mt-6 text-lg text-muted-foreground">{FOUNDER.summary}</p>
-            <blockquote className="mt-6 border-l-2 border-gold pl-4 font-display text-xl italic">
-              “{QUOTES[0].text}”
-            </blockquote>
             <Button asChild className="mt-8">
               <Link href="/legacy">
                 Explore his legacy <ArrowRight className="h-4 w-4" />
@@ -156,8 +144,17 @@ export default async function LandingPage() {
             </Button>
           </AnimateIn>
           <AnimateIn from="right" delay={120}>
+            <div className="mb-6 flex justify-center">
+              <Image
+                src="/dado-headshot.webp"
+                alt="Dado Banatao"
+                width={160}
+                height={160}
+                className="h-40 w-40 rounded-full border-4 border-card object-cover shadow-lg ring-1 ring-border"
+              />
+            </div>
             <div className="relative overflow-hidden rounded-2xl border bg-card p-8">
-              <AtomGraphic className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 text-brand-navy opacity-[0.07]" />
+              <AtomGraphic variant="navy" className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 opacity-[0.07]" />
               <div className="relative flex items-center gap-3">
                 <Cpu className="h-6 w-6 text-brand-navy" />
                 <h3 className="font-display text-lg font-semibold">Chips in every PC</h3>
@@ -187,7 +184,7 @@ export default async function LandingPage() {
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featured.map((scholar, i) => (
               <AnimateIn key={scholar.id} delay={i * 120}>
-                <ScholarCard scholar={scholar} />
+                <ScholarCard scholar={scholar as PublicScholar} />
               </AnimateIn>
             ))}
           </div>

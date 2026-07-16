@@ -5,16 +5,18 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ArrowLeft, Briefcase, MapPin, GraduationCap, Mail, Phone, Lock } from 'lucide-react';
 
-import { fetchScholarById, getUser } from '@/app/lib/actions';
+import { getOptionalViewer } from '@/app/lib/auth';
+import { fetchPublicScholarById, fetchScholarContact } from '@/app/lib/data';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string };
-}): Promise<Metadata> {
-  const scholar = await fetchScholarById(params.id);
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
+  const scholar = await fetchPublicScholarById(Number(params.id));
   if (!scholar) return { title: 'Scholar not found' };
   return {
     title: `${scholar.first} ${scholar.last}`,
@@ -26,21 +28,17 @@ export async function generateMetadata({
   };
 }
 
-export default async function ScholarProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const scholar = await fetchScholarById(params.id);
-  if (!scholar) notFound();
-
-  let isAuthed = false;
-  try {
-    const userData = await getUser();
-    isAuthed = Boolean(userData?.user);
-  } catch {
-    isAuthed = false;
+export default async function ScholarProfilePage(
+  props: {
+    params: Promise<{ id: string }>;
   }
+) {
+  const params = await props.params;
+  const scholarId = Number(params.id);
+  const scholar = await fetchPublicScholarById(scholarId);
+  if (!scholar) notFound();
+  const viewer = await getOptionalViewer();
+  const contact = await fetchScholarContact(scholarId, viewer);
 
   const fullName = `${scholar.first} ${scholar.last}`;
   const location = [scholar.currentCity, scholar.currentState].filter(Boolean).join(', ');
@@ -129,24 +127,24 @@ export default async function ScholarProfilePage({
           </div>
 
           {/* Contacts — only for logged-in scholars */}
-          {isAuthed ? (
-            (scholar.email || scholar.cellPhone) && (
+          {viewer ? (
+            (contact?.email || contact?.cellPhone) && (
               <div className="rounded-2xl border bg-card p-6">
                 <h3 className="font-semibold">Contact</h3>
                 <div className="mt-4 space-y-3 text-sm">
-                  {scholar.email && (
+                  {contact.email && (
                     <a
-                      href={`mailto:${scholar.email}`}
+                      href={`mailto:${contact.email}`}
                       className="flex items-center gap-2.5 hover:underline"
                     >
                       <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="break-all">{scholar.email}</span>
+                      <span className="break-all">{contact.email}</span>
                     </a>
                   )}
-                  {scholar.cellPhone && (
+                  {contact.cellPhone && (
                     <div className="flex items-center gap-2.5">
                       <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span>{scholar.cellPhone}</span>
+                      <span>{contact.cellPhone}</span>
                     </div>
                   )}
                 </div>

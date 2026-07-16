@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Briefcase, MapPin, Mail, Phone } from 'lucide-react';
 
-import { Scholar } from '@/app/types/scholar';
+import type { ScholarDirectoryEntry } from '@/app/types/scholar';
 import { Card, CardContent, CardHeader } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 
@@ -15,7 +15,7 @@ export function ScholarCard({
   scholar,
   showContacts = false,
 }: {
-  scholar: Scholar;
+  scholar: ScholarDirectoryEntry;
   showContacts?: boolean;
 }) {
   const fullName = `${scholar.first} ${scholar.last}`;

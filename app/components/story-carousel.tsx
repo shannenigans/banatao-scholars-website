@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -147,10 +148,11 @@ function StoryCard({ story }: { story: Story }) {
   return (
     <Card className="flex-1 min-w-0 overflow-hidden flex flex-col h-full">
       <div className="relative h-48 overflow-hidden">
-        <img
+        <Image
           src={story.imageUrl || "/unknown_avatar.svg?height=400&width=600"}
           alt={story.title}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          fill
+          className="object-cover transition-transform duration-300 hover:scale-105"
         />
         {story.category && (
           <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">

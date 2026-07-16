@@ -20,8 +20,8 @@ import {
 /** Public marketing header used across ungated pages. */
 export function SiteHeader() {
   const pathname = usePathname();
-  const { supabaseResponseUser } = useUser();
-  const isAuthed = Boolean(supabaseResponseUser?.user);
+  const { viewer } = useUser();
+  const isAuthed = Boolean(viewer);
   const [open, setOpen] = React.useState(false);
 
   const navItems = isAuthed
@@ -33,7 +33,7 @@ export function SiteHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-navy transition-transform duration-300 group-hover:rotate-[18deg]">
-            <AtomLogo className="h-6 w-6 text-gold" />
+            <AtomLogo className="h-6 w-6" />
           </span>
           <span className="font-display text-lg font-semibold tracking-tight">
             {SITE.name}
