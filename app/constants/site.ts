@@ -16,7 +16,7 @@ export const EXTERNAL_LINKS = {
   googleDrive: 'https://drive.google.com/drive/folders/1S5fopPv0wFFyYGoe3d_YULrpccT7mFYJ',
   asianPacificFund: 'https://asianpacificfund.org/what-we-do/scholarships/',
   philDev: 'https://phildev.org/',
-  contactEmail: 'mailto:sbarrameda17@gmail.com',
+  contactEmail: 'mailto:info@asianpacificfund.org',
 };
 
 export type NavItem = { title: string; url: string };

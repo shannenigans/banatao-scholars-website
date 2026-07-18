@@ -16,8 +16,17 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 /** Client-side filterable grid of news posts and spotlights. */
-export function NewsList({ posts }: { posts: NewsPost[] }) {
+export function NewsList({ posts, unavailable }: { posts: NewsPost[]; unavailable: boolean }) {
   const [filter, setFilter] = React.useState<Filter>('all');
+
+  if (posts.length === 0) {
+    return (
+      <p className="mx-auto mt-12 max-w-2xl rounded-xl border bg-muted/40 p-6 text-center text-muted-foreground">
+        {unavailable ? 'News is temporarily unavailable.' : 'No published news yet.'}
+      </p>
+    );
+  }
+
   const visible = posts.filter((p) => filter === 'all' || p.category === filter);
 
   return (

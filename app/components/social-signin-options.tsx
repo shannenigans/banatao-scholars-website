@@ -6,9 +6,9 @@ import '../styles/globals.css'
 
 export const SocialSigninOptions = ({ nextPath }: { nextPath: string }) => {
     return (
-        <div className="signin-button-container">        
+        <div className="signin-button-container">
             <GoogleSignInButton nextPath={nextPath} />
             <LinkedInSigninButton nextPath={nextPath} />
-        </div>   
+        </div>
     )
 }

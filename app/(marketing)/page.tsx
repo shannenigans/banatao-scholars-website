@@ -8,6 +8,7 @@ import {
   Users,
   Cpu,
   Heart,
+  Images,
 } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
@@ -197,6 +198,33 @@ export default async function LandingPage() {
           </div>
         </section>
       )}
+
+      {/* Gallery teaser */}
+      <section className="border-y bg-muted/40">
+        <div className="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
+          <AnimateIn>
+            <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 rounded-2xl border bg-card p-10 text-center shadow-sm sm:flex-row sm:text-left">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-gradient text-gold">
+                <Images className="h-8 w-8" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold uppercase tracking-wider text-gold">Community gallery</p>
+                <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight">
+                  Retreats, mixers, and memories
+                </h2>
+                <p className="mt-2 text-muted-foreground">
+                  Scholars can browse photo albums from events across the Banatao Scholars community.
+                </p>
+              </div>
+              <Button asChild size="lg" className="shrink-0">
+                <Link href="/gallery">
+                  View the gallery <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </AnimateIn>
+        </div>
+      </section>
 
       {/* CTA */}
       <section className="relative overflow-hidden bg-brand-gradient text-white">

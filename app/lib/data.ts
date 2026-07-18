@@ -29,7 +29,7 @@ export async function fetchPublicScholars(): Promise<DataResult<PublicScholar[]>
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from('public_scholars')
+      .from('scholars')
       .select(PUBLIC_SCHOLAR_COLUMNS)
       .in('status', [SCHOLAR_STATUS.ACTIVE, SCHOLAR_STATUS.GRADUATED])
       .order('year', { ascending: false });
@@ -71,7 +71,7 @@ export async function fetchPublicScholarById(id: number): Promise<PublicScholar 
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from('public_scholars')
+      .from('scholars')
       .select(PUBLIC_SCHOLAR_COLUMNS)
       .eq('id', id)
       .in('status', [SCHOLAR_STATUS.ACTIVE, SCHOLAR_STATUS.GRADUATED])

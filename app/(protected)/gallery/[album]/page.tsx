@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Images } from 'lucide-react';
 
 import { fetchAlbumPhotos, fetchAlbums } from '@/app/lib/data';
+import { PhotoGrid } from '@/app/components/marketing/photo-grid';
 
 export default async function AlbumPage({ params }: { params: Promise<{ album: string }> }) {
   const { album: slug } = await params;
@@ -21,13 +21,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ album: s
       {album.description && <p className="mt-2 max-w-2xl text-muted-foreground">{album.description}</p>}
 
       {photos.length > 0 ? (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {photos.map((photo, index) => (
-            <div key={photo.src} className="relative aspect-square overflow-hidden rounded-xl border">
-              <Image src={photo.src} alt={photo.alt ?? `Photo ${index + 1}`} fill className="object-cover" />
-            </div>
-          ))}
-        </div>
+        <PhotoGrid photos={photos} />
       ) : (
         <div className="mt-12 rounded-2xl border bg-muted/40 p-10 text-center">
           <Images className="mx-auto h-8 w-8 text-muted-foreground" />

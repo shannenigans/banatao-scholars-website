@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Filter, Eraser, Lock } from 'lucide-react';
 
 import type { ScholarDirectoryEntry } from '@/app/types/scholar';
@@ -35,11 +36,11 @@ function isVisible(s: ScholarDirectoryEntry) {
 
 export function ScholarsDirectory({
   initialScholars,
-  showContacts,
+  signedIn,
   unavailable,
 }: {
   initialScholars: ScholarDirectoryEntry[];
-  showContacts: boolean;
+  signedIn: boolean;
   unavailable: boolean;
 }) {
   const allScholars = React.useMemo(() => initialScholars.filter(isVisible), [initialScholars]);
@@ -125,75 +126,80 @@ export function ScholarsDirectory({
         </p>
       </div>
 
-      {!showContacts && (
-        <div className="mx-auto mt-6 flex max-w-xl items-center justify-center gap-2 rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-          <Lock className="h-4 w-4 shrink-0" />
-          Sign in as a scholar to see contact details.
-        </div>
-      )}
+      {signedIn ? (
+        <>
+          {/* Controls */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Filter className="h-4 w-4" /> Filter
+              </span>
+              <FilterMenu label="Year" values={years} selected={yearFilters} onToggle={(v, c) => toggle(setYearFilters, v, c)} />
+              <FilterMenu label="Major" values={majors} selected={majorFilters} onToggle={(v, c) => toggle(setMajorFilters, v, c)} />
+              <FilterMenu label="School" values={schools} selected={schoolFilters} onToggle={(v, c) => toggle(setSchoolFilters, v, c)} />
+              <Button variant="outline" size="sm" onClick={clearAll} disabled={!hasFilters && searchQuery === ''}>
+                <Eraser className="h-4 w-4" /> Clear
+              </Button>
+            </div>
+            <Input
+              className="sm:w-72"
+              placeholder="Search scholars…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-      {/* Controls */}
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Filter className="h-4 w-4" /> Filter
-          </span>
-          <FilterMenu label="Year" values={years} selected={yearFilters} onToggle={(v, c) => toggle(setYearFilters, v, c)} />
-          <FilterMenu label="Major" values={majors} selected={majorFilters} onToggle={(v, c) => toggle(setMajorFilters, v, c)} />
-          <FilterMenu label="School" values={schools} selected={schoolFilters} onToggle={(v, c) => toggle(setSchoolFilters, v, c)} />
-          <Button variant="outline" size="sm" onClick={clearAll} disabled={!hasFilters && searchQuery === ''}>
-            <Eraser className="h-4 w-4" /> Clear
+          <p className="mt-4 text-sm text-muted-foreground">
+            {`${filtered.length} ${filtered.length === 1 ? 'scholar' : 'scholars'}`}
+          </p>
+
+          {/* Grid */}
+          {paged.length === 0 ? (
+            <div className="mt-16 text-center text-muted-foreground">
+              {unavailable
+                ? 'The scholar directory is temporarily unavailable.'
+                : 'No scholars match your search.'}
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {paged.map((s) => (
+                <ScholarCard key={s.id} scholar={s} showContacts />
+              ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <Pagination className="mt-10">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <span className="px-4 text-sm text-muted-foreground">
+                    Page {page} of {totalPages}
+                  </span>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </>
+      ) : (
+        <div className="mx-auto mt-12 flex max-w-md flex-col items-center gap-3 rounded-2xl border bg-muted/40 p-10 text-center">
+          <Lock className="h-8 w-8 text-muted-foreground" />
+          <p className="text-muted-foreground">Sign in as a scholar to browse the directory.</p>
+          <Button asChild className="mt-2">
+            <Link href="/login?next=/scholars">Sign in</Link>
           </Button>
         </div>
-        <Input
-          className="sm:w-72"
-          placeholder="Search scholars…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      <p className="mt-4 text-sm text-muted-foreground">
-        {`${filtered.length} ${filtered.length === 1 ? 'scholar' : 'scholars'}`}
-      </p>
-
-      {/* Grid */}
-      {paged.length === 0 ? (
-        <div className="mt-16 text-center text-muted-foreground">
-          {unavailable
-            ? 'The scholar directory is temporarily unavailable.'
-            : 'No scholars match your search.'}
-        </div>
-      ) : (
-        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {paged.map((s) => (
-            <ScholarCard key={s.id} scholar={s} showContacts={showContacts} />
-          ))}
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <Pagination className="mt-10">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <span className="px-4 text-sm text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
       )}
     </div>
   );

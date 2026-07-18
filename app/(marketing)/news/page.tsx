@@ -21,12 +21,7 @@ export default async function NewsPage() {
         title="News & Spotlights"
         description="Announcements, stories, and celebrations from across the Banatao Scholars network."
       />
-      <NewsList posts={posts} />
-      {posts.length === 0 && (
-        <p className="mx-auto mt-12 max-w-2xl rounded-xl border bg-muted/40 p-6 text-center text-muted-foreground">
-          {unavailable ? 'News is temporarily unavailable.' : 'No published news yet.'}
-        </p>
-      )}
+      <NewsList posts={posts} unavailable={unavailable} />
     </div>
   );
 }
