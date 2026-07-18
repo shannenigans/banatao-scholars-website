@@ -1,49 +1,31 @@
-'use client'
-
 import React from 'react';
-import { getMediaFromBucket } from '@/app/lib/actions';
-import Image from "next/image";
-import { Loader2 } from 'lucide-react';
-import { FileObject } from '@supabase/storage-js';
 
-// Just use the FileObject type directly from Supabase
-type Media = FileObject;
+import { fetchAlbums } from '@/app/lib/data';
+import { AlbumCard } from '@/app/components/marketing/album-card';
 
-const IGNORED_NAMES = ['.emptyFolderPlaceholder']
+export default async function GalleryPage() {
+  const { data: albums, unavailable } = await fetchAlbums();
 
-export default function GalleryPage() {
-    const [mediaQuery, setMediaQuery] = React.useState<Media[]>([]);
-    const [isLoading, setIsLoading] = React.useState(true);
+  return (
+    <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Photo Gallery</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Moments from retreats, mixers, and gatherings across the Banatao Scholars community.
+        </p>
+      </div>
 
-    React.useEffect(() => {
-        const getMedia = async () => {
-            const mediaFromBucket = await getMediaFromBucket();
-            // Add null check to handle case when data might be null
-            setMediaQuery(mediaFromBucket.data || []);
-            setIsLoading(false);
-        }
-
-        getMedia();
-    }, [])
-
-    return (
-        <div className='flex w-full h-full items-center'>
-            <div className='w-full p-6 flex gap-4' style={{ overflowX: 'scroll' }}>
-                {
-                    isLoading ? <div className='flex gap-2 justify-center w-full'><Loader2 className='animate-spin'/>Loading...</div>: mediaQuery.map((media: Media) => {
-                        return (
-                            !IGNORED_NAMES.includes(media.name) &&
-                            <Image
-                                src={`https://hisjorhwwdqudqtqzidc.supabase.co/storage/v1/object/public/media/retreat_2024/${media.name}`}
-                                height={350}
-                                width={250}
-                                alt={`${media.name}`}
-                                key={media.id}
-                            />
-                        )
-                    })
-                }
-            </div>
+      {albums.length > 0 ? (
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {albums.map((album) => (
+            <AlbumCard key={album.slug} album={album} />
+          ))}
         </div>
-    )
+      ) : (
+        <p className="mt-12 rounded-xl border bg-muted/40 p-6 text-center text-muted-foreground">
+          {unavailable ? 'The gallery is temporarily unavailable.' : 'No albums have been published yet.'}
+        </p>
+      )}
+    </div>
+  );
 }

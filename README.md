@@ -19,7 +19,7 @@ A web-based application built with Next.js for managing scholar information thro
 - **Form Handling**: React Hook Form
 - **Validation**: Zod
 - **UI Components**: Custom UI components
-- **Database**: PostgreSQL
+- **Database and auth**: Supabase (PostgreSQL)
 - **File Processing**: XLSX, CSV via /admin/importScholarForm.tsx
 - **Styling**: Tailwind CSS 
 
@@ -38,28 +38,16 @@ cd banatao-scholars-website
 npm install
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
+3. Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
-# Database Configuration
-POSTGRES_URL="your_postgres_url"
-POSTGRES_PRISMA_URL="your_postgres_prisma_url"
-POSTGRES_URL_NON_POOLING="your_postgres_non_pooling_url"
-POSTGRES_USER="your_postgres_username"
-POSTGRES_PASSWORD="your_postgres_password"
-POSTGRES_DATABASE="your_database_name"
-POSTGRES_HOST="your_postgres_host"
-
 # Supabase Configuration
-SUPABASE_URL="your_supabase_url"
 NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
-SUPABASE_JWT_SECRET="your_supabase_jwt_secret"
-SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+SUPABASE_SERVICE_ROLE_KEY="your_server-only_service_role_key"
 
-# Authentication
-# Generate one here: https://generate-secret.vercel.app/32 (only required for localhost)
-AUTH_SECRET="your_auth_secret"
+# Canonical application origin (required in production unless VERCEL_URL is set)
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ```
 
 4. Run the development server:
@@ -67,13 +55,37 @@ AUTH_SECRET="your_auth_secret"
 npm run dev
 ```
 
+The service-role key is used only by the server-side sign-up action to verify
+the email allowlist. Never expose it through a `NEXT_PUBLIC_*` variable.
+
+In Supabase Auth, add each deployed origin's `/auth/callback` URL to the allowed
+redirect URLs. Set `NEXT_PUBLIC_SITE_URL` to the canonical production origin;
+preview deployments can fall back to Vercel's `VERCEL_URL`.
+
+## Validation
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
+npm run db:test
+```
+
+Database migrations and policy tests live under `supabase/`. With Docker
+running, use `npx supabase start` followed by `npm run db:test`. After changing
+a migration, run `npm run db:types` and commit the regenerated
+`app/types/database.generated.ts` file.
+
 ## 🔒 Protected Routes
 
 The application uses a protected routes system under the `(protected)` directory. Users must be authenticated to access these routes.
 
-### Middleware Authentication
+### Proxy Authentication
 
-The application implements route protection using Next.js middleware:
+The application implements route protection using the Next.js proxy plus
+server-side layout guards:
 
 - All routes under `app/(protected)/*` require authentication
 - Unauthenticated users are redirected to the login page
@@ -91,15 +103,43 @@ The system supports importing scholar data through Excel (.xlsx) and CSV files. 
 4. Error handling and user feedback
 
 ### Import File Format
-The Excel or CSV file should contain the following columns:
-- First Name
-- Last Name
-- Email
-- Graduation Year
-- Major
-- University
-- Current Job Title (optional)
-- Current Company (optional)
+The first row is treated as a header. Data rows must use this positional column
+order (optional fields may be blank):
+
+1. Status
+2. Graduation year
+3. First name
+4. Middle name
+5. Last name
+6. School
+7. Major
+8. Email
+9. Old emails
+10. Cell phone
+11. School phone
+12. Home phone
+13. School address
+14. School address line 2
+15. School city
+16. School state
+17. School ZIP
+18. Home address
+19. Home city
+20. Home state
+21. Home ZIP
+22. Parents
+23. Parents' contact information
+24. Current address
+25. Current city
+26. Current state
+27. Current ZIP
+28. Current phone
+29. Role or description
+30. Company
+31. Bio
+
+Imports are limited to 1,000 records, 31 columns, and 5 MB. The server validates
+every field and rejects duplicate or invalid email addresses before writing.
 
 ## 🤝 Contributing
 
@@ -154,7 +194,7 @@ If you encounter build errors during deployment:
 
 ## 🔄 Development Status
 
-Deployed at http://banatao-scholars.org
+Deployed at https://banatao-scholars.org
 
 ## 🐛 Known Issues
 

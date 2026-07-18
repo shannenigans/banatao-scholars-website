@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import {
   DropdownMenu,
@@ -17,22 +19,46 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/app/components/ui/sidebar"
-import { ChevronUp, Home, Settings, User2, BookOpenText, Shield, GalleryHorizontal } from "lucide-react"
+import { ChevronUp, Home, Settings, User2, BookOpenText, GalleryHorizontal, LayoutDashboard, FolderOpen, Calendar, Handshake, Briefcase, Newspaper } from "lucide-react"
 import { SignOut } from "./buttons/sign-out";
 import Link from 'next/link';
 import { useUser } from '../hooks/use-user';
-import { isEmailWhitelisted } from '../lib/actions';
 
 const tabs = [
   {
-    title: "Home",
-    url: "/",
-    icon: Home,
+    title: "Portal",
+    url: "/portal",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Resources",
+    url: "/resources",
+    icon: FolderOpen,
   },
   {
     title: "Scholars",
     url: "/scholars",
     icon: BookOpenText,
+  },
+  {
+    title: "Mentorship",
+    url: "/mentorship",
+    icon: Handshake,
+  },
+  {
+    title: "Jobs",
+    url: "/jobs",
+    icon: Briefcase,
+  },
+  {
+    title: "News",
+    url: "/news",
+    icon: Newspaper,
+  },
+  {
+    title: "Events",
+    url: "/events",
+    icon: Calendar,
   },
   {
     title: "Gallery",
@@ -43,25 +69,16 @@ const tabs = [
     title: "Settings",
     url: "/settings",
     icon: Settings,
+  },
+  {
+    title: "Home",
+    url: "/",
+    icon: Home,
   }
 ];
 
 export function AppSidebar() {
-  const userContext = useUser();
-  const { supabaseResponseUser } = userContext;
-  const user = supabaseResponseUser?.user;
-  const [isUserAdmin, setIsUserAdmin] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkIsAdmin = async () => {
-      if (user?.email) {
-        const whitelistQuery = await isEmailWhitelisted(user?.email);
-        setIsUserAdmin(whitelistQuery ? whitelistQuery[0].isAdmin : false);
-      }
-    }
-
-    checkIsAdmin();
-  }, [user]);
+  const { viewer } = useUser();
 
   return (
     <Sidebar>
@@ -90,7 +107,7 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2 /> {user?.email ? user?.email : ''}
+                  <User2 /> {viewer?.user.email ?? ''}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -98,10 +115,10 @@ export function AppSidebar() {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <SignOut />
                 </DropdownMenuItem>
-                {isUserAdmin && <DropdownMenuItem>
+                {viewer?.isAdmin && <DropdownMenuItem>
                   <Link href={'/admin'}>Admin</Link>
                 </DropdownMenuItem>}
               </DropdownMenuContent>

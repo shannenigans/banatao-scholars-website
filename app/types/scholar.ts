@@ -1,6 +1,6 @@
 import { SCHOLAR_STATUS } from "../lib/utils";
 
-export interface Scholar {
+export interface PublicScholar {
   id: number;
   status: SCHOLAR_STATUS;
   year: string;
@@ -9,41 +9,18 @@ export interface Scholar {
   last: string;
   school: string;
   major?: string;
-  email?: string;
-  oldEmails?: string;
-  cellPhone?: string;
-  schoolPhone?: string;
-  homePhone?: string;
-  schoolAddress?: string;
-  schoolAddress2?: string;
-  schoolCity?: string;
-  schoolState?: string;
-  schoolZip?: string;
-  homeAddress?: string;
-  homeCity?: string;
-  homeState?: string;
-  homeZip?: string;
-  parents?: string;
-  parentsContact?: string;
-  currentAddress?: string;
   currentCity?: string;
   currentState?: string;
-  currentZip?: string;
-  currentPhone?: string;
   
   // Additional fields not in CSV
   description: string;
   company?: string;
-  profilePic?: string;
   imageUrl?: string;
-  bio?: string
+  bio?: string;
 }
 
-export const scholarKeys: (keyof Scholar)[] = [
-  "status", "year", "first", "middle", "last", "school", "major", "email", 
-  "oldEmails", "cellPhone", "schoolPhone", "homePhone", "schoolAddress", 
-  "schoolAddress2", "schoolCity", "schoolState", "schoolZip", "homeAddress", 
-  "homeCity", "homeState", "homeZip", "parents", "parentsContact", 
-  "currentAddress", "currentCity", "currentState", "currentZip", "currentPhone", 
-  "description", "company", "bio",
-];
+export type ScholarContact = { email?: string; cellPhone?: string };
+
+export type ScholarDirectoryEntry = PublicScholar & ScholarContact;
+
+export type PrivateScholarProfile = PublicScholar & ScholarContact;

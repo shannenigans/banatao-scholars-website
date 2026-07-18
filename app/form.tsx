@@ -2,7 +2,7 @@ export function Form({
   action,
   children,
 }: {
-  action: any;
+  action: (formData: FormData) => void;
   children: React.ReactNode;
 }) {
   return (
