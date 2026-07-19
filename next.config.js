@@ -4,6 +4,13 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  experimental: {
+    serverActions: {
+      // Profile photo uploads are validated up to 2 MB in saveProfile(); add
+      // headroom for the rest of the form fields and multipart overhead.
+      bodySizeLimit: '3mb',
+    },
+  },
   images: {
     remotePatterns: [
       {

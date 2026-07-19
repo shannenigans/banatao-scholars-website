@@ -10,7 +10,8 @@ test('public landing page renders with Supabase deliberately disabled', async ({
 
 test('scholar directory fails closed without exposing contacts', async ({ page }) => {
   await page.goto('/scholars');
-  await expect(page.getByText('The scholar directory is temporarily unavailable.')).toBeVisible();
+  await expect(page.getByText('Sign in as a scholar to browse the directory.')).toBeVisible();
+  await expect(page.locator('a[href="/login?next=/scholars"]')).toBeVisible();
   await expect(page.getByText(/@/)).toHaveCount(0);
 });
 
