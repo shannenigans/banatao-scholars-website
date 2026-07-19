@@ -1,9 +1,12 @@
 import React from 'react';
 
+import { getOptionalViewer } from '@/app/lib/auth';
 import { fetchAlbums } from '@/app/lib/data';
 import { AlbumCard } from '@/app/components/marketing/album-card';
+import { CreateAlbumForm } from './create-album-form';
 
 export default async function GalleryPage() {
+  const viewer = await getOptionalViewer();
   const { data: albums, unavailable } = await fetchAlbums();
 
   return (
@@ -14,6 +17,8 @@ export default async function GalleryPage() {
           Moments from retreats, mixers, and gatherings across the Banatao Scholars community.
         </p>
       </div>
+
+      {viewer?.isAdmin && <div className="mt-8"><CreateAlbumForm /></div>}
 
       {albums.length > 0 ? (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

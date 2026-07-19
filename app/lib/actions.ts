@@ -25,7 +25,7 @@ const credentialsSchema = z.object({
   password: z.string().min(8).max(128),
 });
 
-const PROFILE_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+const IMAGE_UPLOAD_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
 const optionalText = (max: number) =>
   z.preprocess((value) => (value === '' ? undefined : value), z.string().trim().max(max).optional());
@@ -197,7 +197,7 @@ export async function saveProfile(_state: ActionState, formData: FormData): Prom
   if (profilePic instanceof File && profilePic.size > 0) {
     if (
       profilePic.size > 2_000_000 ||
-      !PROFILE_IMAGE_MIMES.includes(profilePic.type as ProfileImageMime)
+      !IMAGE_UPLOAD_MIMES.includes(profilePic.type as ProfileImageMime)
     ) {
       return formError('Profile photos must be JPEG, PNG, or WebP files no larger than 2 MB.');
     }
@@ -247,6 +247,107 @@ export async function saveProfile(_state: ActionState, formData: FormData): Prom
   revalidatePath('/settings');
   revalidatePath('/scholars');
   return { success: true };
+}
+
+const MAX_ALBUM_PHOTOS_PER_UPLOAD = 20;
+
+function extensionForImageMime(mime: ProfileImageMime): string {
+  return mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+}
+
+export async function uploadAlbumPhotos(_state: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+
+  const slug = formData.get('slug');
+  if (typeof slug !== 'string' || !slug) return formError('Missing album.');
+
+  const admin = createAdminClient();
+  const { data: album, error: albumError } = await admin
+    .from('gallery_albums')
+    .select('bucket_path')
+    .eq('slug', slug)
+    .maybeSingle();
+  if (albumError || !album?.bucket_path) {
+    return formError('This album is not configured for photo uploads yet.');
+  }
+
+  const photos = formData.getAll('photos').filter((value): value is File => value instanceof File && value.size > 0);
+  if (photos.length === 0) return formError('Select at least one photo to upload.');
+  if (photos.length > MAX_ALBUM_PHOTOS_PER_UPLOAD) {
+    return formError(`Upload at most ${MAX_ALBUM_PHOTOS_PER_UPLOAD} photos at a time.`);
+  }
+
+  for (const photo of photos) {
+    if (photo.size > 8_000_000 || !IMAGE_UPLOAD_MIMES.includes(photo.type as ProfileImageMime)) {
+      return formError('Photos must be JPEG, PNG, or WebP files no larger than 8 MB.');
+    }
+    const signature = new Uint8Array(await photo.slice(0, 12).arrayBuffer());
+    if (!hasValidImageSignature(signature, photo.type as ProfileImageMime)) {
+      return formError('One of the selected files is not a valid JPEG, PNG, or WebP image.');
+    }
+  }
+
+  const supabase = await createClient();
+  const uploadedPaths: string[] = [];
+  for (const photo of photos) {
+    const path = `${album.bucket_path}/${crypto.randomUUID()}.${extensionForImageMime(photo.type as ProfileImageMime)}`;
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(path, photo, { cacheControl: '3600', contentType: photo.type, upsert: false });
+    if (uploadError) {
+      if (uploadedPaths.length > 0) await supabase.storage.from('media').remove(uploadedPaths);
+      return formError('One or more photos failed to upload. Please try again.');
+    }
+    uploadedPaths.push(path);
+  }
+
+  revalidatePath(`/gallery/${slug}`);
+  return { success: true };
+}
+
+const albumSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  description: optionalText(2000),
+  eventDate: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  ),
+});
+
+function slugifyAlbumTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export async function createGalleryAlbum(_state: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = albumSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return formError('Enter a title (and optionally a description and date) and try again.');
+
+  const slug = slugifyAlbumTitle(parsed.data.title);
+  if (!slug) return formError('Enter a title that includes at least one letter or number.');
+
+  const admin = createAdminClient();
+  const { error } = await admin.from('gallery_albums').insert({
+    slug,
+    title: parsed.data.title,
+    description: parsed.data.description ?? null,
+    event_date: parsed.data.eventDate ?? null,
+    bucket_path: slug,
+    status: 'published',
+  });
+  if (error) {
+    return formError(
+      error.code === '23505'
+        ? 'An album with that title (or a very similar one) already exists.'
+        : 'The album could not be created. Please try again.',
+    );
+  }
+
+  revalidatePath('/gallery');
+  redirect(`/gallery/${slug}`);
 }
 
 export async function parseScholarData(rawData: unknown[]): Promise<ActionState> {

@@ -118,9 +118,11 @@ export function AppSidebar() {
                 <DropdownMenuItem asChild>
                   <SignOut />
                 </DropdownMenuItem>
-                {viewer?.isAdmin && <DropdownMenuItem>
-                  <Link href={'/admin'}>Admin</Link>
-                </DropdownMenuItem>}
+                {viewer?.isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link href={'/admin'}>Admin</Link>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

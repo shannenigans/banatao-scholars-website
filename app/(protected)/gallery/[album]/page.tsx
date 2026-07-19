@@ -2,11 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Images } from 'lucide-react';
 
+import { getOptionalViewer } from '@/app/lib/auth';
 import { fetchAlbumPhotos, fetchAlbums } from '@/app/lib/data';
 import { PhotoGrid } from '@/app/components/marketing/photo-grid';
+import { UploadPhotosForm } from './upload-photos-form';
 
 export default async function AlbumPage({ params }: { params: Promise<{ album: string }> }) {
   const { album: slug } = await params;
+  const viewer = await getOptionalViewer();
   const { data: albums } = await fetchAlbums();
   const album = albums.find((candidate) => candidate.slug === slug);
   if (!album) notFound();
@@ -28,6 +31,8 @@ export default async function AlbumPage({ params }: { params: Promise<{ album: s
           <p className="mt-3 text-muted-foreground">No photos have been published for this album.</p>
         </div>
       )}
+
+      {viewer?.isAdmin && <UploadPhotosForm slug={slug} />}
     </div>
   );
 }
