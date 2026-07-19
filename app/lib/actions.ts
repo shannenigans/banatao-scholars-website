@@ -255,11 +255,29 @@ function extensionForImageMime(mime: ProfileImageMime): string {
   return mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
 }
 
-export async function uploadAlbumPhotos(_state: ActionState, formData: FormData): Promise<ActionState> {
+export type PhotoUploadRequest = { name: string; type: string; size: number };
+export type PhotoUploadTicket = { name: string; path: string; token: string };
+export type PhotoUploadTicketResult =
+  | { tickets: PhotoUploadTicket[]; error?: undefined }
+  | { tickets?: undefined; error: string };
+
+/**
+ * Issues signed upload URLs so the browser can upload photo bytes straight to
+ * Supabase Storage, bypassing the Server Actions body size limit (and
+ * Vercel's hard 4.5MB request body cap in production) entirely. Admin check
+ * and file validation happen here; the actual bytes never pass through this
+ * server. The `media` bucket's file_size_limit/allowed_mime_types (see
+ * supabase/migrations/20260719000000_media_bucket_limits.sql) enforce type
+ * and size at the storage layer, since we can't inspect real file signatures
+ * without the bytes.
+ */
+export async function createAlbumPhotoUploadTickets(
+  slug: string,
+  files: PhotoUploadRequest[],
+): Promise<PhotoUploadTicketResult> {
   await requireAdmin();
 
-  const slug = formData.get('slug');
-  if (typeof slug !== 'string' || !slug) return formError('Missing album.');
+  if (typeof slug !== 'string' || !slug) return { error: 'Missing album.' };
 
   const admin = createAdminClient();
   const { data: album, error: albumError } = await admin
@@ -268,41 +286,59 @@ export async function uploadAlbumPhotos(_state: ActionState, formData: FormData)
     .eq('slug', slug)
     .maybeSingle();
   if (albumError || !album?.bucket_path) {
-    return formError('This album is not configured for photo uploads yet.');
+    return { error: 'This album is not configured for photo uploads yet.' };
   }
 
-  const photos = formData.getAll('photos').filter((value): value is File => value instanceof File && value.size > 0);
-  if (photos.length === 0) return formError('Select at least one photo to upload.');
-  if (photos.length > MAX_ALBUM_PHOTOS_PER_UPLOAD) {
-    return formError(`Upload at most ${MAX_ALBUM_PHOTOS_PER_UPLOAD} photos at a time.`);
+  if (!Array.isArray(files) || files.length === 0) {
+    return { error: 'Select at least one photo to upload.' };
   }
-
-  for (const photo of photos) {
-    if (photo.size > 8_000_000 || !IMAGE_UPLOAD_MIMES.includes(photo.type as ProfileImageMime)) {
-      return formError('Photos must be JPEG, PNG, or WebP files no larger than 8 MB.');
-    }
-    const signature = new Uint8Array(await photo.slice(0, 12).arrayBuffer());
-    if (!hasValidImageSignature(signature, photo.type as ProfileImageMime)) {
-      return formError('One of the selected files is not a valid JPEG, PNG, or WebP image.');
+  if (files.length > MAX_ALBUM_PHOTOS_PER_UPLOAD) {
+    return { error: `Upload at most ${MAX_ALBUM_PHOTOS_PER_UPLOAD} photos at a time.` };
+  }
+  for (const file of files) {
+    if (
+      typeof file.size !== 'number' ||
+      file.size <= 0 ||
+      file.size > 8_000_000 ||
+      !IMAGE_UPLOAD_MIMES.includes(file.type as ProfileImageMime)
+    ) {
+      return { error: 'Photos must be JPEG, PNG, or WebP files no larger than 8 MB.' };
     }
   }
 
   const supabase = await createClient();
-  const uploadedPaths: string[] = [];
-  for (const photo of photos) {
-    const path = `${album.bucket_path}/${crypto.randomUUID()}.${extensionForImageMime(photo.type as ProfileImageMime)}`;
-    const { error: uploadError } = await supabase.storage
-      .from('media')
-      .upload(path, photo, { cacheControl: '3600', contentType: photo.type, upsert: false });
-    if (uploadError) {
-      if (uploadedPaths.length > 0) await supabase.storage.from('media').remove(uploadedPaths);
-      return formError('One or more photos failed to upload. Please try again.');
-    }
-    uploadedPaths.push(path);
+  const tickets: PhotoUploadTicket[] = [];
+  for (const file of files) {
+    const path = `${album.bucket_path}/${crypto.randomUUID()}.${extensionForImageMime(file.type as ProfileImageMime)}`;
+    const { data, error } = await supabase.storage.from('media').createSignedUploadUrl(path);
+    if (error || !data) return { error: 'Could not prepare the upload. Please try again.' };
+    tickets.push({ name: file.name, path: data.path, token: data.token });
   }
 
+  return { tickets };
+}
+
+export async function finalizeAlbumPhotoUpload(slug: string): Promise<void> {
+  await requireAdmin();
   revalidatePath(`/gallery/${slug}`);
-  return { success: true };
+}
+
+export async function deleteJobPosting(id: string): Promise<{ error?: string }> {
+  const viewer = await requireViewer();
+  if (typeof id !== 'string' || !id) return { error: 'Missing job posting.' };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('job_postings')
+    .delete()
+    .eq('id', id)
+    .eq('posted_by_user_id', viewer.user.id)
+    .select('id')
+    .maybeSingle();
+  if (error || !data) return { error: 'You can only delete job postings you shared.' };
+
+  revalidatePath('/jobs');
+  return {};
 }
 
 const albumSchema = z.object({
@@ -348,6 +384,45 @@ export async function createGalleryAlbum(_state: ActionState, formData: FormData
 
   revalidatePath('/gallery');
   redirect(`/gallery/${slug}`);
+}
+
+export async function updateGalleryAlbumTitle(slug: string, title: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  const parsed = z.string().trim().min(2).max(160).safeParse(title);
+  if (!parsed.success) return { error: 'Enter a title between 2 and 160 characters.' };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('gallery_albums')
+    .update({ title: parsed.data })
+    .eq('slug', slug);
+  if (error) return { error: 'The album could not be updated. Please try again.' };
+
+  revalidatePath('/gallery');
+  revalidatePath(`/gallery/${slug}`);
+  return {};
+}
+
+export async function deleteAlbumPhoto(slug: string, path: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  if (typeof path !== 'string' || !path) return { error: 'Missing photo.' };
+
+  const admin = createAdminClient();
+  const { data: album, error: albumError } = await admin
+    .from('gallery_albums')
+    .select('bucket_path')
+    .eq('slug', slug)
+    .maybeSingle();
+  if (albumError || !album?.bucket_path) return { error: 'Album not found.' };
+  if (path !== album.bucket_path && !path.startsWith(`${album.bucket_path}/`)) {
+    return { error: 'That photo does not belong to this album.' };
+  }
+
+  const { error } = await admin.storage.from('media').remove([path]);
+  if (error) return { error: 'The photo could not be deleted. Please try again.' };
+
+  revalidatePath(`/gallery/${slug}`);
+  return {};
 }
 
 export async function parseScholarData(rawData: unknown[]): Promise<ActionState> {

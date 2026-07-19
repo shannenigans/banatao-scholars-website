@@ -13,18 +13,19 @@ function formatDate(date?: string) {
   });
 }
 
-/** Card linking to a photo album. Falls back to a brand gradient cover. */
-export function AlbumCard({ album }: { album: GalleryAlbum }) {
+/** Card linking to a photo album. Falls back to the album's first photo, then a brand gradient. */
+export function AlbumCard({ album, coverImage }: { album: GalleryAlbum; coverImage?: string }) {
   const dateLabel = formatDate(album.date);
+  const cover = coverImage ?? album.coverImage;
   return (
     <Link
       href={`/gallery/${album.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="relative h-40 w-full overflow-hidden">
-        {album.coverImage ? (
+        {cover ? (
           <Image
-            src={album.coverImage}
+            src={cover}
             alt={album.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"

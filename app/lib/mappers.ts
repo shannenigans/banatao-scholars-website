@@ -76,8 +76,8 @@ export function mapJob(row: JobPostingRow): JobPosting {
   return {
     id: row.id, title: row.title, company: row.company, location: optional(row.location),
     type: jobType(row.type), remote: row.remote, url: row.url, postedBy: optional(row.posted_by),
-    postedAt: row.posted_at.slice(0, 10), description: optional(row.description),
-    expiresAt: row.expires_at?.slice(0, 10),
+    postedByUserId: optional(row.posted_by_user_id), postedAt: row.posted_at.slice(0, 10),
+    description: optional(row.description), expiresAt: row.expires_at?.slice(0, 10),
   };
 }
 

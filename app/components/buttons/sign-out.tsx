@@ -1,5 +1,6 @@
 'use client'
 import React from 'react';
+import { unstable_rethrow } from 'next/navigation';
 import { signOut } from "@/app/lib/actions";
 import { useToast } from '@/app/hooks/use-toast';
 
@@ -14,7 +15,8 @@ export const SignOut = React.forwardRef<
       startTransition(async () => {
         try {
           await signOut();
-        } catch {
+        } catch (err) {
+          unstable_rethrow(err);
           toast({
             title: 'Unable to sign out',
             variant: 'destructive',

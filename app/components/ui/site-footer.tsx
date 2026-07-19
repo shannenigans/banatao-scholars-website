@@ -1,13 +1,17 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Mail, ExternalLink, ArrowRight } from 'lucide-react';
 
 import { SITE, EXTERNAL_LINKS, PUBLIC_NAV } from '@/app/constants/site';
 import { AtomLogo } from '@/app/components/ui/atom-logo';
+import { useUser } from '@/app/hooks/use-user';
 
 /** Public marketing footer with community + scholarship links. */
 export function SiteFooter() {
   const year = new Date().getFullYear();
+  const { viewer } = useUser();
 
   return (
     <footer className="border-t border-border/60 bg-muted/40">
@@ -22,13 +26,15 @@ export function SiteFooter() {
           <p className="mt-4 max-w-sm text-sm text-muted-foreground">
             {SITE.description}
           </p>
-          <Link
-            href="/login"
-            className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand-navy hover:underline dark:text-gold"
-          >
-            Scholar sign in
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          {!viewer && (
+            <Link
+              href="/login"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand-navy hover:underline dark:text-gold"
+            >
+              Scholar sign in
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
 
         <div>

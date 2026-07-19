@@ -1,9 +1,14 @@
+'use client';
+
 import React from 'react';
-import { Briefcase, MapPin, ExternalLink, Globe } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Briefcase, MapPin, ExternalLink, Globe, Trash2 } from 'lucide-react';
 
 import { JobPosting } from '@/app/constants/jobs';
+import { deleteJobPosting } from '@/app/lib/actions';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
+import { ConfirmDialog } from '@/app/components/ui/confirm-dialog';
 
 function formatDate(date: string) {
   return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
@@ -13,8 +18,27 @@ function formatDate(date: string) {
   });
 }
 
-/** Presentational card for an alumni-shared job/internship posting. */
-export function JobCard({ job }: { job: JobPosting }) {
+/** Card for an alumni-shared job/internship posting; owner can delete their own. */
+export function JobCard({ job, currentUserId }: { job: JobPosting; currentUserId?: string }) {
+  const router = useRouter();
+  const canDelete = Boolean(currentUserId) && job.postedByUserId === currentUserId;
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  const handleDelete = () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteJobPosting(String(job.id));
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setConfirmOpen(false);
+      router.refresh();
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border bg-card p-6 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex items-start gap-4">
@@ -46,11 +70,40 @@ export function JobCard({ job }: { job: JobPosting }) {
           )}
         </div>
       </div>
-      <Button asChild size="sm" className="shrink-0">
-        <a href={job.url} target="_blank" rel="noopener noreferrer">
-          View <ExternalLink className="h-3.5 w-3.5" />
-        </a>
-      </Button>
+      <div className="flex shrink-0 items-center gap-2">
+        <Button asChild size="sm">
+          <a href={job.url} target="_blank" rel="noopener noreferrer">
+            View <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </Button>
+        {canDelete && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            aria-label="Delete job posting"
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+
+      {canDelete && (
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={(open) => {
+            setConfirmOpen(open);
+            if (!open) setError(null);
+          }}
+          title="Delete this job posting?"
+          description="This permanently removes the posting from the board. This can't be undone."
+          confirmLabel="Delete"
+          pending={pending}
+          error={error}
+          onConfirm={handleDelete}
+        />
+      )}
     </div>
   );
 }

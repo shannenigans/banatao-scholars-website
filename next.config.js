@@ -6,8 +6,10 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      // Profile photo uploads are validated up to 2 MB in saveProfile(); add
-      // headroom for the rest of the form fields and multipart overhead.
+      // Gallery photo bytes upload directly to Supabase Storage via signed
+      // URLs (createAlbumPhotoUploadTickets) and never pass through this
+      // server. Only the 2MB profile photo (saveProfile) routes through
+      // Server Actions now; add headroom for the rest of the form fields.
       bodySizeLimit: '3mb',
     },
   },
@@ -21,7 +23,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "tpudkdbdakznsxdpsuil.supabase.co",
+        hostname: "fcowugbzvvnpqjrlwyge.supabase.co",
         port: "",
         pathname: "**",
       },

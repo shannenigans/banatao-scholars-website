@@ -10,7 +10,15 @@ import { Input } from '@/app/components/ui/input';
 import { useDebounce } from '@/app/hooks/use-debounce';
 import { cn } from '@/app/lib/utils';
 
-export function JobsBoard({ jobs, unavailable }: { jobs: JobPosting[]; unavailable: boolean }) {
+export function JobsBoard({
+  jobs,
+  unavailable,
+  currentUserId,
+}: {
+  jobs: JobPosting[];
+  unavailable: boolean;
+  currentUserId?: string;
+}) {
   const [search, setSearch] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<JobType | 'All'>('All');
   const debouncedSearch = useDebounce(search, 300);
@@ -72,7 +80,7 @@ export function JobsBoard({ jobs, unavailable }: { jobs: JobPosting[]; unavailab
       {/* List */}
       <div className="mt-8 space-y-4">
         {visible.length > 0 ? (
-          visible.map((job) => <JobCard key={job.id} job={job} />)
+          visible.map((job) => <JobCard key={job.id} job={job} currentUserId={currentUserId} />)
         ) : (
           <div className="rounded-2xl border bg-muted/40 p-10 text-center">
             <Briefcase className="mx-auto h-8 w-8 text-muted-foreground" />

@@ -19,6 +19,8 @@ export type JobPosting = {
   url: string;
   /** Name of the scholar/alum who shared the role. */
   postedBy?: string;
+  /** auth.users id of the poster; used to gate the delete option to its owner. */
+  postedByUserId?: string;
   postedAt: string;
   description?: string;
   /** Optional expiry; expired roles are hidden when served from Supabase. */

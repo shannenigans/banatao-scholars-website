@@ -14,6 +14,8 @@ export type GalleryPhoto = {
   src: string;
   alt?: string;
   caption?: string;
+  /** Storage object path (e.g. `<bucketPath>/<file>`), present for storage-backed photos only. Used for admin deletion. */
+  path?: string;
 };
 
 export type GalleryAlbum = {

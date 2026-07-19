@@ -195,7 +195,25 @@ export async function fetchAlbumPhotos(album: GalleryAlbum): Promise<GalleryPhot
     .from('media')
     .createSignedUrls(paths, 3600);
   if (signedError) return album.photos ?? [];
-  return (signed ?? []).flatMap(({ signedUrl }) =>
-    signedUrl ? [{ src: signedUrl, alt: album.title }] : [],
+  return (signed ?? []).flatMap(({ signedUrl, path }) =>
+    signedUrl ? [{ src: signedUrl, alt: album.title, path: path ?? undefined }] : [],
   );
+}
+
+export async function fetchAlbumCoverImage(album: GalleryAlbum): Promise<string | undefined> {
+  if (album.coverImage) return album.coverImage;
+  if (!album.bucketPath) return album.photos?.[0]?.src;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from('media')
+    .list(album.bucketPath, { limit: 1, sortBy: { column: 'created_at', order: 'asc' } });
+  if (error) return album.photos?.[0]?.src;
+  const first = (data ?? []).find(({ name }) => name && name !== '.emptyFolderPlaceholder');
+  if (!first) return album.photos?.[0]?.src;
+
+  const { data: signed, error: signedError } = await supabase.storage
+    .from('media')
+    .createSignedUrl(`${album.bucketPath}/${first.name}`, 3600);
+  return signedError ? album.photos?.[0]?.src : signed?.signedUrl;
 }
