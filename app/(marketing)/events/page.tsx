@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Calendar, MapPin, Lock, ExternalLink, ArrowRight } from 'lucide-react';
 
+import { getOptionalViewer } from '@/app/lib/auth';
 import { fetchEvents } from '@/app/lib/data';
 import { ScholarEvent } from '@/app/constants/events';
 import { SectionHeading } from '@/app/components/marketing/section-heading';
@@ -78,6 +79,7 @@ function EventCard({ event }: { event: ScholarEvent }) {
 }
 
 export default async function EventsPage() {
+  const viewer = await getOptionalViewer();
   const { data: events, unavailable } = await fetchEvents();
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -125,16 +127,18 @@ export default async function EventsPage() {
           </>
         )}
 
-        <div className="mt-12 rounded-2xl border bg-muted/40 p-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Are you a Banatao Scholar? Sign in for invites, reminders, and the community chat.
-          </p>
-          <Button asChild className="mt-4">
-            <Link href="/login">
-              Scholar sign in <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        {!viewer && (
+          <div className="mt-12 rounded-2xl border bg-muted/40 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Are you a Banatao Scholar? Sign in for invites, reminders, and the community chat.
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/login">
+                Scholar sign in <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

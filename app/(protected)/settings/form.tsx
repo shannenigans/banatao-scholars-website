@@ -52,7 +52,7 @@ export function ProfileForm({ profile }: { profile: PrivateScholarProfile | null
             accept="image/jpeg,image/png,image/webp"
             className="mt-2"
           />
-          <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, or WebP; 2 MB maximum.</p>
+          <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, or WebP; 1 MB maximum.</p>
         </div>
 
         <div className="grid flex-1 gap-4 sm:grid-cols-2">
