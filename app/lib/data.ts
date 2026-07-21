@@ -116,7 +116,7 @@ export async function fetchEvents(): Promise<DataResult<ScholarEvent[]>> {
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from('events')
-      .select('id,title,starts_on,ends_on,location,description,url,member_only,status,published_at')
+      .select('id,title,starts_on,ends_on,location,description,url,member_only,status,published_at,submitted_by,submitted_by_user_id')
       .eq('status', 'published')
       .lte('published_at', now)
       .order('starts_on', { ascending: true });
@@ -127,13 +127,75 @@ export async function fetchEvents(): Promise<DataResult<ScholarEvent[]>> {
   }
 }
 
+export type PendingEvent = {
+  id: string;
+  title: string;
+  startsOn: string;
+  endsOn?: string;
+  location?: string;
+  description?: string;
+  url?: string;
+  memberOnly: boolean;
+  submittedBy?: string;
+};
+
+/** Scholar-submitted events awaiting admin approval (admin-only via RLS). */
+export async function fetchPendingEvents(): Promise<PendingEvent[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('events')
+    .select('id,title,starts_on,ends_on,location,description,url,member_only,submitted_by')
+    .eq('status', 'draft')
+    .not('submitted_by_user_id', 'is', null)
+    .order('starts_on', { ascending: true });
+  if (error) return [];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    startsOn: row.starts_on,
+    endsOn: row.ends_on ?? undefined,
+    location: row.location ?? undefined,
+    description: row.description ?? undefined,
+    url: row.url ?? undefined,
+    memberOnly: row.member_only,
+    submittedBy: row.submitted_by ?? undefined,
+  }));
+}
+
+export type PendingStory = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  body?: string;
+  submittedBy?: string;
+};
+
+/** Scholar-submitted spotlight stories awaiting admin approval (admin-only via RLS). */
+export async function fetchPendingStories(): Promise<PendingStory[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('news')
+    .select('slug,title,excerpt,body,submitted_by')
+    .eq('status', 'draft')
+    .not('submitted_by_user_id', 'is', null)
+    .order('slug', { ascending: true });
+  if (error) return [];
+  return (data ?? []).map((row) => ({
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    body: row.body ?? undefined,
+    submittedBy: row.submitted_by ?? undefined,
+  }));
+}
+
 export async function fetchNews(): Promise<DataResult<NewsPost[]>> {
   try {
     const supabase = await createClient();
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from('news')
-      .select('slug,title,excerpt,body,published_at,author,cover_image,category,scholar_id,featured,status')
+      .select('slug,title,excerpt,body,published_at,author,cover_image,category,scholar_id,featured,status,submitted_by,submitted_by_user_id')
       .eq('status', 'published')
       .lte('published_at', now)
       .order('published_at', { ascending: false });

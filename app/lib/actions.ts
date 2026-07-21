@@ -341,6 +341,181 @@ export async function deleteJobPosting(id: string): Promise<{ error?: string }> 
   return {};
 }
 
+const eventSubmissionSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid start date.'),
+  endsOn: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  ),
+  location: optionalText(200),
+  description: optionalText(2000),
+  url: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().trim().url().max(2000).optional(),
+  ),
+  memberOnly: z.preprocess((value) => value === 'on' || value === 'true', z.boolean()),
+});
+
+export async function submitEvent(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const viewer = await requireViewer();
+  const parsed = eventSubmissionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return formError('Check the event fields and try again.');
+  if (parsed.data.endsOn && parsed.data.endsOn < parsed.data.startsOn) {
+    return formError('End date must be on or after the start date.');
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from('events').insert({
+    title: parsed.data.title,
+    starts_on: parsed.data.startsOn,
+    ends_on: parsed.data.endsOn ?? null,
+    location: parsed.data.location ?? null,
+    description: parsed.data.description ?? null,
+    url: parsed.data.url ?? null,
+    member_only: parsed.data.memberOnly,
+    status: 'draft',
+    submitted_by_user_id: viewer.user.id,
+    submitted_by: viewer.user.email,
+  });
+  if (error) return formError('Your event could not be submitted. Please try again.');
+
+  revalidatePath('/events');
+  return { success: true };
+}
+
+const eventUpdateSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid start date.'),
+  endsOn: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  ),
+  location: optionalText(200),
+  description: optionalText(2000),
+  url: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.string().trim().url().max(2000).optional(),
+  ),
+  memberOnly: z.boolean(),
+});
+export type EventApprovalInput = z.infer<typeof eventUpdateSchema>;
+
+export async function approveEvent(id: string, updates: EventApprovalInput): Promise<{ error?: string }> {
+  await requireAdmin();
+  const parsed = eventUpdateSchema.safeParse(updates);
+  if (!parsed.success) return { error: 'Check the event fields and try again.' };
+  if (parsed.data.endsOn && parsed.data.endsOn < parsed.data.startsOn) {
+    return { error: 'End date must be on or after the start date.' };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('events')
+    .update({
+      title: parsed.data.title,
+      starts_on: parsed.data.startsOn,
+      ends_on: parsed.data.endsOn ?? null,
+      location: parsed.data.location ?? null,
+      description: parsed.data.description ?? null,
+      url: parsed.data.url ?? null,
+      member_only: parsed.data.memberOnly,
+      status: 'published',
+      published_at: new Date().toISOString(),
+    })
+    .eq('id', id);
+  if (error) return { error: 'This event could not be approved. Please try again.' };
+  revalidatePath('/events');
+  revalidatePath('/admin');
+  return {};
+}
+
+export async function rejectEvent(id: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { error } = await supabase.from('events').delete().eq('id', id);
+  if (error) return { error: 'This event could not be rejected. Please try again.' };
+  revalidatePath('/admin');
+  return {};
+}
+
+const storySubmissionSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  title: z.string().trim().min(2).max(160),
+  excerpt: z.string().trim().min(2).max(280),
+  body: optionalText(5000),
+});
+
+export async function submitStory(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const viewer = await requireViewer();
+  const parsed = storySubmissionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return formError('Check the story fields and try again.');
+
+  const baseSlug = slugifyTitle(parsed.data.title);
+  if (!baseSlug) return formError('Enter a title that includes at least one letter or number.');
+
+  const supabase = await createClient();
+  const insertStory = (slug: string) =>
+    supabase.from('news').insert({
+      slug,
+      title: parsed.data.title,
+      excerpt: parsed.data.excerpt,
+      body: parsed.data.body ?? null,
+      author: parsed.data.name,
+      category: 'spotlight',
+      status: 'draft',
+      submitted_by_user_id: viewer.user.id,
+      submitted_by: parsed.data.name,
+    });
+
+  let { error } = await insertStory(baseSlug);
+  if (error?.code === '23505') {
+    ({ error } = await insertStory(`${baseSlug}-${crypto.randomUUID().slice(0, 6)}`));
+  }
+  if (error) return formError('Your story could not be submitted. Please try again.');
+
+  revalidatePath('/news');
+  return { success: true };
+}
+
+const storyUpdateSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  excerpt: z.string().trim().min(2).max(280),
+  body: optionalText(5000),
+});
+export type StoryApprovalInput = z.infer<typeof storyUpdateSchema>;
+
+export async function approveStory(slug: string, updates: StoryApprovalInput): Promise<{ error?: string }> {
+  await requireAdmin();
+  const parsed = storyUpdateSchema.safeParse(updates);
+  if (!parsed.success) return { error: 'Check the story fields and try again.' };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('news')
+    .update({
+      title: parsed.data.title,
+      excerpt: parsed.data.excerpt,
+      body: parsed.data.body ?? null,
+      status: 'published',
+      published_at: new Date().toISOString(),
+    })
+    .eq('slug', slug);
+  if (error) return { error: 'This story could not be approved. Please try again.' };
+  revalidatePath('/news');
+  revalidatePath('/admin');
+  return {};
+}
+
+export async function rejectStory(slug: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { error } = await supabase.from('news').delete().eq('slug', slug);
+  if (error) return { error: 'This story could not be rejected. Please try again.' };
+  revalidatePath('/admin');
+  return {};
+}
+
 const albumSchema = z.object({
   title: z.string().trim().min(2).max(160),
   description: optionalText(2000),
@@ -350,7 +525,7 @@ const albumSchema = z.object({
   ),
 });
 
-function slugifyAlbumTitle(title: string): string {
+function slugifyTitle(title: string): string {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -362,7 +537,7 @@ export async function createGalleryAlbum(_state: ActionState, formData: FormData
   const parsed = albumSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return formError('Enter a title (and optionally a description and date) and try again.');
 
-  const slug = slugifyAlbumTitle(parsed.data.title);
+  const slug = slugifyTitle(parsed.data.title);
   if (!slug) return formError('Enter a title that includes at least one letter or number.');
 
   const admin = createAdminClient();

@@ -16,7 +16,15 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 /** Client-side filterable grid of news posts and spotlights. */
-export function NewsList({ posts, unavailable }: { posts: NewsPost[]; unavailable: boolean }) {
+export function NewsList({
+  posts,
+  unavailable,
+  isAdmin = false,
+}: {
+  posts: NewsPost[];
+  unavailable: boolean;
+  isAdmin?: boolean;
+}) {
   const [filter, setFilter] = React.useState<Filter>('all');
 
   if (posts.length === 0) {
@@ -53,7 +61,7 @@ export function NewsList({ posts, unavailable }: { posts: NewsPost[]; unavailabl
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {visible.map((post, i) => (
             <AnimateIn key={post.slug} delay={i * 80}>
-              <NewsCard post={post} />
+              <NewsCard post={post} isAdmin={isAdmin} />
             </AnimateIn>
           ))}
         </div>

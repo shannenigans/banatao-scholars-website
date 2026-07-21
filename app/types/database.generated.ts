@@ -59,6 +59,8 @@ export type Database = {
           published_at: string | null
           starts_on: string
           status: string
+          submitted_by: string | null
+          submitted_by_user_id: string | null
           title: string
           url: string | null
         }
@@ -71,6 +73,8 @@ export type Database = {
           published_at?: string | null
           starts_on: string
           status?: string
+          submitted_by?: string | null
+          submitted_by_user_id?: string | null
           title: string
           url?: string | null
         }
@@ -83,6 +87,8 @@ export type Database = {
           published_at?: string | null
           starts_on?: string
           status?: string
+          submitted_by?: string | null
+          submitted_by_user_id?: string | null
           title?: string
           url?: string | null
         }
@@ -205,6 +211,8 @@ export type Database = {
           scholar_id: number | null
           slug: string
           status: string
+          submitted_by: string | null
+          submitted_by_user_id: string | null
           title: string
         }
         Insert: {
@@ -218,6 +226,8 @@ export type Database = {
           scholar_id?: number | null
           slug: string
           status?: string
+          submitted_by?: string | null
+          submitted_by_user_id?: string | null
           title: string
         }
         Update: {
@@ -231,6 +241,8 @@ export type Database = {
           scholar_id?: number | null
           slug?: string
           status?: string
+          submitted_by?: string | null
+          submitted_by_user_id?: string | null
           title?: string
         }
         Relationships: [

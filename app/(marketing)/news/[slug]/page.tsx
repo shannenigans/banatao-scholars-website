@@ -5,10 +5,12 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ArrowLeft, Calendar, ArrowRight } from 'lucide-react';
 
+import { getOptionalViewer } from '@/app/lib/auth';
 import { fetchNewsBySlug, fetchPublicScholarById } from '@/app/lib/data';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { ScholarCard } from '@/app/components/marketing/scholar-card';
+import { DeleteStoryButton } from './delete-story-button';
 import type { PublicScholar } from '@/app/types/scholar';
 
 export async function generateMetadata(
@@ -38,6 +40,7 @@ export default async function NewsDetailPage(
   const params = await props.params;
   const post = await fetchNewsBySlug(params.slug);
   if (!post) notFound();
+  const viewer = await getOptionalViewer();
 
   let scholar: PublicScholar | null = null;
   if (post.scholarId) {
@@ -106,6 +109,7 @@ export default async function NewsDetailPage(
               Meet the scholars <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          {viewer?.isAdmin && <DeleteStoryButton slug={post.slug} />}
         </div>
       </article>
     </div>

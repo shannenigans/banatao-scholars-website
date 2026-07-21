@@ -1,9 +1,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
 
+import { getOptionalViewer } from '@/app/lib/auth';
 import { fetchNews } from '@/app/lib/data';
 import { SectionHeading } from '@/app/components/marketing/section-heading';
 import { NewsList } from '@/app/components/marketing/news-list';
+import { ShareStoryCta } from './share-story-cta';
 
 export const metadata: Metadata = {
   title: 'News & Spotlights',
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewsPage() {
+  const viewer = await getOptionalViewer();
   const { data: posts, unavailable } = await fetchNews();
 
   return (
@@ -21,7 +24,8 @@ export default async function NewsPage() {
         title="News & Spotlights"
         description="Announcements, stories, and celebrations from across the Banatao Scholars network."
       />
-      <NewsList posts={posts} unavailable={unavailable} />
+      {viewer && <ShareStoryCta />}
+      <NewsList posts={posts} unavailable={unavailable} isAdmin={Boolean(viewer?.isAdmin)} />
     </div>
   );
 }
