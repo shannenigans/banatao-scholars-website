@@ -166,7 +166,12 @@ async function oauthUrl(
     redirectTo.searchParams.set('next', safeNextPath(requestedPath));
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: redirectTo.toString() },
+      options: {
+        redirectTo: redirectTo.toString(),
+        // Force the account chooser so a still-active Google session doesn't
+        // silently re-authenticate the previous user after sign-out.
+        ...(provider === 'google' ? { queryParams: { prompt: 'select_account' } } : {}),
+      },
     });
     return error || !data.url
       ? { error: 'Single sign-on is temporarily unavailable.' }
